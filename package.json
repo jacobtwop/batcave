@@ -1,0 +1,11 @@
+{
+  "name": "batcave-composer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bat City newsletter composer, hosted at batcave.cliftoncreative.agency",
+  "engines": { "node": ">=22.12.0" },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.7"
+  }
+}
