@@ -6,7 +6,7 @@
 //   env         : (name) => string | undefined
 //   now         : () => ms since epoch (injectable for tests)
 
-const COLLECTIONS = new Set(['issues', 'index', 'defaults', 'settings']);
+const COLLECTIONS = new Set(['issues', 'index', 'defaults', 'settings', 'posts', 'postindex']);
 const ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
 const MAX_BODY = 300_000;            // characters; the composer itself stops at 250,000
 const MAX_IMPORT = 4_000_000;        // characters for one restore
@@ -212,7 +212,7 @@ export function createHandler({ data, auth, env, now = () => Date.now() }) {
       }
       const updatedAt = new Date(nowMs).toISOString();
       await mapLimit(writes, 6, ([c, id, d]) => data.set(`${c}/${id}`, { data: d, updatedAt }));
-      return json(200, { ok: true, written: writes.length, issues: writes.filter((w) => w[0] === 'issues').length });
+      return json(200, { ok: true, written: writes.length, issues: writes.filter((w) => w[0] === 'issues').length, posts: writes.filter((w) => w[0] === 'posts').length });
     }
 
     if (route[0] === 'db' && route.length >= 2 && route.length <= 3) {
