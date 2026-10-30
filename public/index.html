@@ -209,6 +209,8 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
   var reloginP = null;     // shared while the passcode box is open mid-session
   var inflight = new Set();
   var frozen = false;      // set just before a reload so a stale save cannot overwrite a restore
+  // Two pages share this file: the Newsletter composer at / and the Blog posts composer at /posts.
+  var PAGE = /^\/posts(\.html|\/)?$/.test(location.pathname) ? 'posts' : 'news';
 
   /* ---------- sign-in screen ---------- */
   var css = [
@@ -230,7 +232,13 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
     '#bcGate button{display:inline-flex;align-items:center;justify-content:center;width:100%;border:1px solid var(--accent,#682077);',
     'background:var(--accent,#682077);color:var(--accent-ink,#fff);border-radius:6px;padding:9px 12px;font:800 14px/1.1 var(--ui,system-ui,sans-serif);cursor:pointer}',
     '#bcGate button:disabled{opacity:.55;cursor:default}',
-    '#bcGate .bcUser{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}'
+    '#bcGate .bcUser{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}',
+    '.bcTabs{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line,#DDD1E5);border-radius:8px;background:var(--panel2,#F9F5FB)}',
+    '.bcTabs a{display:inline-flex;align-items:center;padding:6px 12px;border-radius:6px;font:700 13px/1.1 var(--ui,system-ui,sans-serif);',
+    'color:var(--muted,#6A5B77);text-decoration:none;white-space:nowrap}',
+    '.bcTabs a:hover{color:var(--ink,#1B1024)}',
+    '.bcTabs a:focus-visible{outline:3px solid var(--hot,#C4006A);outline-offset:1px}',
+    '.bcTabs a[aria-current=page]{background:var(--accent,#682077);color:var(--accent-ink,#fff);cursor:default}'
   ].join('');
   var styleEl = document.createElement('style');
   styleEl.textContent = css;
@@ -254,7 +262,7 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
     gate.hidden = false;
     gate.textContent = '';
     var box = node('div', { 'class': 'bcBox', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'bcT' });
-    box.appendChild(node('div', { 'class': 'bcBrand' }, [node('b', { text: 'Newsletter Composer' }), node('span', { text: 'Bat City Games & Comics' })]));
+    box.appendChild(node('div', { 'class': 'bcBrand' }, [node('b', { text: PAGE === 'posts' ? 'Blog Post Composer' : 'Newsletter Composer' }), node('span', { text: 'Bat City Games & Comics' })]));
     box.appendChild(node('h2', { id: 'bcT', text: title }));
     if (msg) box.appendChild(node('p', { 'class': opts.error ? 'bcErr' : '', role: opts.error ? 'alert' : 'status', text: msg }));
     gate.appendChild(box);
@@ -430,6 +438,24 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
     var rail = document.querySelector('.rail');
     if (!bar || !rail || document.getElementById('bcSignOut')) return;
 
+    // Tabs: Newsletter and Blog posts. Leaving a page saves it first.
+    var brand = bar.querySelector('.brand');
+    var tabs = node('nav', { 'class': 'bcTabs', id: 'bcTabs', 'aria-label': 'Composers' });
+    [['news', '/', 'Newsletter'], ['posts', '/posts', 'Blog posts']].forEach(function (t) {
+      var a = node('a', { href: t[1], id: 'bcTab-' + t[0], text: t[2] });
+      if (t[0] === PAGE) a.setAttribute('aria-current', 'page');
+      a.addEventListener('click', async function (e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        if (t[0] === PAGE) return;
+        a.style.opacity = '.6';
+        try { window.dispatchEvent(new Event('pagehide')); await drain(); } catch (err) {}
+        location.href = t[1];
+      });
+      tabs.appendChild(a);
+    });
+    if (brand && brand.nextSibling) bar.insertBefore(tabs, brand.nextSibling); else bar.appendChild(tabs);
+
     var out = node('button', { 'class': 'btn sm ghost', id: 'bcSignOut', type: 'button', text: 'Sign out' });
     out.addEventListener('click', async function () {
       out.disabled = true;
@@ -461,8 +487,13 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
       try { parsed = JSON.parse(await f.text()); } catch (e) { say('That file is not a backup.'); return; }
       var cols = parsed && parsed.collections;
       if (!cols || typeof cols !== 'object') { say('That file is not a composer backup.'); return; }
-      var n = cols.issues ? Object.keys(cols.issues).length : 0;
-      if (!window.confirm('Restore ' + n + ' issue' + (n === 1 ? '' : 's') + ' from this backup? Anything with the same ID is replaced by the backup version.')) { say('Nothing changed.'); return; }
+      var ni = cols.issues ? Object.keys(cols.issues).length : 0;
+      var np = cols.posts ? Object.keys(cols.posts).length : 0;
+      var parts = [];
+      if (ni) parts.push(ni + ' newsletter issue' + (ni === 1 ? '' : 's'));
+      if (np) parts.push(np + ' blog post' + (np === 1 ? '' : 's'));
+      var what = parts.length ? parts.join(' and ') : 'the saved settings';
+      if (!window.confirm('Restore ' + what + ' from this backup? Anything with the same ID is replaced by the backup version.')) { say('Nothing changed.'); return; }
       say('Restoring...');
       try {
         var r = await call('POST', API + '/import', parsed);
@@ -474,7 +505,7 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
 
     var card = node('div', { 'class': 'card', id: 'bcTools' }, [
       node('h2', { text: 'Your drafts' }),
-      node('p', { 'class': 'hint', text: 'Drafts are kept on this site and shared by everyone with the passcode. If two people edit the same issue at once, the later save wins. A backup is a file you keep.' }),
+      node('p', { 'class': 'hint', text: 'Drafts are kept on this site and shared by everyone with the passcode. If two people edit the same issue or post at once, the later save wins. One backup file holds the newsletters and the blog posts together.' }),
       node('div', { style: 'display:flex;flex-wrap:wrap;gap:6px' }, [backup, restore, file]),
       status
     ]);
