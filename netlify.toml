@@ -1,5 +1,6 @@
-# Batcave: the Bat City newsletter composer.
-# public/index.html is the page. netlify/functions/api.mjs answers /api/*.
+# Batcave: the Bat City newsletter and blog post composers.
+# public/index.html is the Newsletter page. public/posts.html is the Blog posts page.
+# netlify/functions/api.mjs answers /api/*.
 
 [build]
   publish = "public"
@@ -7,6 +8,16 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/posts"
+  to = "/posts.html"
+  status = 200
+
+[[redirects]]
+  from = "/posts/"
+  to = "/posts.html"
+  status = 200
 
 [[headers]]
   for = "/*"
