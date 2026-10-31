@@ -1,0 +1,528 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23682077'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='20' font-weight='800' text-anchor='middle' fill='%23C9FA00'%3EN%3C/text%3E%3C/svg%3E"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Newsletter Composer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* Workbench layout: a block rail on the left, the live email at true width in the middle.
+   The chrome stays quiet so the email's own purple, magenta and lime are the only loud colors. */
+:root{
+  --bg:#F3EEF6; --panel:#FFFFFF; --panel2:#F9F5FB; --ink:#1B1024; --muted:#6A5B77; --line:#DDD1E5;
+  --accent:#682077; --accent-ink:#FFFFFF; --accent-soft:#EDE0F3; --hot:#C4006A; --lime:#C9FA00; --lime-ink:#1B1024;
+  --ok:#1D7440; --ok-soft:#DDF1E3; --warn:#9A5400; --warn-soft:#FBEBCF; --stop:#B3002F; --stop-soft:#FADADF;
+  --shadow:0 1px 2px rgba(27,16,36,.08),0 10px 28px rgba(27,16,36,.10);
+  --ui:'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#120A1A; --panel:#1D1128; --panel2:#251633; --ink:#F2E9F7; --muted:#B9A8C7; --line:#3B2A4A;
+  --accent:#C98BE2; --accent-ink:#1A0B22; --accent-soft:#3A2250; --hot:#FF5CAF;
+  --ok:#7FD6A0; --ok-soft:#173B27; --warn:#F0B35A; --warn-soft:#3F2A0C; --stop:#FF7D96; --stop-soft:#481425;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#120A1A; --panel:#1D1128; --panel2:#251633; --ink:#F2E9F7; --muted:#B9A8C7; --line:#3B2A4A;
+  --accent:#C98BE2; --accent-ink:#1A0B22; --accent-soft:#3A2250; --hot:#FF5CAF;
+  --ok:#7FD6A0; --ok-soft:#173B27; --warn:#F0B35A; --warn-soft:#3F2A0C; --stop:#FF7D96; --stop-soft:#481425;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--ui);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+[hidden]{display:none!important}
+
+#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;padding-block:12px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.brand{display:flex;flex-direction:column;line-height:1.1;margin-right:6px}
+.brand b{font:800 18px/1.1 var(--ui);letter-spacing:-.01em}
+.brand span{font:700 10px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--hot)}
+.issuebox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+.issuebox select{max-width:230px}
+.grow{flex:1 1 auto}
+.savestate{font:500 12px/1 var(--ui);color:var(--muted);min-width:78px;text-align:right}
+.savestate.bad{color:var(--warn)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 11px;font-weight:700;font-size:13px;line-height:1.1;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 8px;font-size:12px}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--stop);border-color:var(--stop)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+input[type=text],input[type=url],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;min-width:0}
+input[type=text]:focus,input[type=url]:focus,select:focus{border-color:var(--accent)}
+label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+
+.main{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:14px;min-height:0}
+.rail{grid-column:1;grid-row:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.card h2{margin:0 0 8px;font:800 12px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card p{margin:0 0 8px}
+.hint{color:var(--muted);font-size:12px}
+
+.blocks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.blk{border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:7px 8px}
+.blk.off{opacity:.62}
+.blk .row1{display:flex;align-items:center;gap:8px}
+.blk .nm{flex:1 1 auto;min-width:0;background:none;border:0;padding:0;text-align:left;cursor:pointer;font:700 13px/1.25 var(--ui)}
+.blk .nm small{display:block;font:400 11.5px/1.3 var(--ui);color:var(--muted)}
+.blk .nm:hover{color:var(--accent)}
+.blk .acts{display:flex;gap:3px}
+.blk details{margin-top:6px}
+.blk summary{cursor:pointer;font:600 11.5px/1.3 var(--ui);color:var(--muted)}
+.blk .more{display:flex;flex-wrap:wrap;gap:6px;padding-top:6px}
+.blk .ask{margin-top:6px;padding:8px;border-radius:6px;background:var(--warn-soft);color:var(--warn);font-size:12px}
+.blk .ask .btn{margin-top:6px;margin-right:6px}
+.sw{position:relative;flex:0 0 auto;width:34px;height:20px}
+.sw input{position:absolute;inset:0;z-index:1;opacity:0;margin:0;cursor:pointer}
+.sw i{position:absolute;inset:0;border-radius:99px;background:var(--line);transition:background .15s}
+.sw i::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sw input:checked+i{background:var(--accent)}
+.sw input:checked+i::after{transform:translateX(14px)}
+.sw input:disabled{cursor:default}
+.sw input:disabled+i{opacity:.55}
+.sw input:focus-visible+i{outline:3px solid var(--hot);outline-offset:2px}
+
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:12.5px}
+.pill{flex:0 0 auto;font:800 10px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;padding:4px 6px;border-radius:4px;margin-top:1px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.stop{background:var(--stop-soft);color:var(--stop)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+
+.stage{grid-column:2;grid-row:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+.bar .sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.count{font:700 12px/1 var(--ui);color:var(--muted)}
+.count b{color:var(--hot);font-size:14px}
+.ctx{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;background:var(--accent-soft);border-radius:8px;padding:6px 9px;font-size:12.5px}
+.ctx input{flex:1 1 240px}
+.ctx .t{font:800 11px/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.frameWrap{flex:1 1 auto;min-height:0;overflow:auto;display:flex;justify-content:center;padding:2px 2px 10px}
+#frame{width:680px;max-width:100%;height:100%;min-height:520px;border:1px solid var(--line);border-radius:8px;background:#EFF0F5;box-shadow:var(--shadow);transition:width .2s}
+#frame.phone{width:390px}
+.empty{flex:1 1 auto;display:grid;place-items:center;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:24px}
+.empty h1{margin:0 0 6px;font:800 24px/1.15 var(--ui);letter-spacing:-.01em}
+.empty p{margin:0 auto 14px;max-width:46ch;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-weight:700;font-size:13px;box-shadow:var(--shadow);z-index:60;max-width:calc(100% - 32px)}
+.scrim{position:fixed;inset:0;background:rgba(18,10,26,.55);display:grid;place-items:center;padding:16px;z-index:50}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);width:min(680px,100%);max-height:calc(100% - 8px);overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.modal h2{margin:0;font:800 20px/1.15 var(--ui)}
+.modal textarea{width:100%;min-height:200px;font:400 12px/1.5 var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
+.status{padding:8px 10px;border-radius:6px;font-weight:700}
+.status.ok{background:var(--ok-soft);color:var(--ok)}
+.status.warn{background:var(--warn-soft);color:var(--warn)}
+.mrow{display:flex;flex-wrap:wrap;gap:8px}
+.dim{color:var(--muted)}
+
+@media (max-width:900px){
+  html,body{height:auto}
+  #app{height:auto;display:flex;flex-direction:column}
+  .main{display:flex;flex-direction:column}
+  .stage{order:1}
+  .rail{order:2;overflow:visible}
+  .frameWrap{height:72vh;flex:none}
+  .savestate{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){.sw i,.sw i::after,#frame{transition:none}}
+</style></head><body>
+
+<div id="app">
+  <header class="top">
+    <div class="brand"><b>Newsletter Composer</b><span>Bat City Games &amp; Comics</span></div>
+    <div class="issuebox">
+      <label class="f" for="issueSel" style="margin:0" hidden>Issue</label>
+      <select id="issueSel" aria-label="Issue"></select>
+      <input id="issueName" type="text" aria-label="Issue name" placeholder="Issue name" size="18">
+      <button class="btn sm" id="btnNew" type="button">New issue</button>
+      <button class="btn sm danger" id="btnDel" type="button">Delete</button>
+      <span id="delAsk" hidden>Delete this issue? <button class="btn sm danger" id="btnDelYes" type="button">Yes, delete</button> <button class="btn sm" id="btnDelNo" type="button">Keep</button></span>
+    </div>
+    <span class="grow"></span>
+    <span class="savestate" id="saveState" role="status"></span>
+    <button class="btn" id="btnDownload" type="button">Download file</button>
+    <button class="btn primary" id="btnCopy" type="button">Copy for Shopify</button>
+  </header>
+
+  <div class="main">
+    <section class="stage" aria-label="Email preview">
+      <div class="bar" id="bar">
+        <button class="btn sm" id="vDesk" type="button" aria-pressed="true">Desktop</button>
+        <button class="btn sm" id="vPhone" type="button" aria-pressed="false">Phone</button>
+        <span class="sep"></span>
+        <button class="btn sm" id="btnB" type="button" title="Bold (select text first)"><b>B</b></button>
+        <button class="btn sm" id="btnI" type="button" title="Italic (select text first)"><i>I</i></button>
+        <button class="btn sm" id="btnLink" type="button" title="Turn the selected text into a link">Link</button>
+        <span class="sep"></span>
+        <button class="btn sm" id="btnNext" type="button" title="Jump to the next [prompt] and select it. Tab does the same inside the email.">Next prompt</button>
+        <span class="count" id="count"></span>
+        <span class="grow"></span>
+        <button class="btn sm" id="btnUndo" type="button" disabled>Undo block change</button>
+      </div>
+      <div class="ctx" id="ctx" hidden></div>
+      <div class="frameWrap" id="frameWrap"><iframe id="frame" title="Email preview" sandbox="allow-same-origin"></iframe></div>
+      <div class="empty" id="empty" hidden>
+        <div>
+          <h1>No issue yet</h1>
+          <p>Start this week's issue. It opens with every block from the template, three capsule reviews between the sections, and the Magic Word held back until Brendan approves it.</p>
+          <button class="btn primary" id="btnStart" type="button">Start this week's issue</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="rail" aria-label="Blocks and checks">
+      <div class="card">
+        <h2>Blocks</h2>
+        <p class="hint">Switch a block off to leave it out. Use the arrows to reorder. Type straight into the email; click a link or picture to change its address. The gray tags are fill-ins from Shopify, so leave them be.</p>
+        <ul class="blocks" id="blocks"></ul>
+      </div>
+      <div class="card">
+        <h2>Before you send</h2>
+        <ul class="checks" id="checks"></ul>
+      </div>
+      <div class="card">
+        <h2>Set once</h2>
+        <label class="f" for="logoUrl">Logo web address</label>
+        <input id="logoUrl" type="url" style="width:100%" placeholder="https://cdn.shopify.com/.../bat-city-logo.png">
+        <p class="hint" style="margin-top:6px">Upload the logo to Shopify (Content, Files), copy its address, paste it here. It goes into the email's first line.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+/* Batcave shim: gives the composer the same window.claude.use('db') and ('downloads')
+   it gets inside claude.ai, but backed by this site's own /api and a passcode sign-in.
+   The composer waits for use('db'), so nothing shows until the sign-in is done. */
+(function () {
+  'use strict';
+  var API = '/api';
+  var sessionP = null;     // resolves once we know we are signed in
+  var reloginP = null;     // shared while the passcode box is open mid-session
+  var inflight = new Set();
+  var frozen = false;      // set just before a reload so a stale save cannot overwrite a restore
+  // Two pages share this file: the Newsletter composer at / and the Blog posts composer at /posts.
+  var PAGE = /^\/posts(\.html|\/)?$/.test(location.pathname) ? 'posts' : 'news';
+
+  /* ---------- sign-in screen ---------- */
+  var css = [
+    '#bcGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;',
+    'padding:16px;background:var(--bg,#F3EEF6);color:var(--ink,#1B1024);font:400 14px/1.45 var(--ui,system-ui,sans-serif)}',
+    '#bcGate[hidden]{display:none!important}',
+    '#bcGate .bcBox{width:100%;max-width:360px;background:var(--panel,#fff);border:1px solid var(--line,#DDD1E5);',
+    'border-radius:12px;padding:22px;box-shadow:var(--shadow,0 10px 28px rgba(27,16,36,.1))}',
+    '#bcGate .bcBrand{display:flex;flex-direction:column;line-height:1.1;margin-bottom:14px}',
+    '#bcGate .bcBrand b{font:800 20px/1.1 var(--ui,system-ui,sans-serif);letter-spacing:-.01em}',
+    '#bcGate .bcBrand span{font:700 10px/1.5 var(--ui,system-ui,sans-serif);letter-spacing:.14em;text-transform:uppercase;color:var(--hot,#C4006A)}',
+    '#bcGate h2{margin:0 0 6px;font:800 15px/1.3 var(--ui,system-ui,sans-serif)}',
+    '#bcGate p{margin:0 0 12px;color:var(--muted,#6A5B77)}',
+    '#bcGate p.bcErr{color:var(--stop,#B3002F);font-weight:600}',
+    '#bcGate label{display:block;margin:0 0 4px;font:700 11px/1.3 var(--ui,system-ui,sans-serif);letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#6A5B77)}',
+    '#bcGate input[type=password]{width:100%;background:var(--panel,#fff);color:inherit;border:1px solid var(--line,#DDD1E5);',
+    'border-radius:6px;padding:9px 10px;font:inherit;margin-bottom:12px}',
+    '#bcGate input[type=password]:focus{border-color:var(--accent,#682077);outline:3px solid var(--hot,#C4006A);outline-offset:1px}',
+    '#bcGate button{display:inline-flex;align-items:center;justify-content:center;width:100%;border:1px solid var(--accent,#682077);',
+    'background:var(--accent,#682077);color:var(--accent-ink,#fff);border-radius:6px;padding:9px 12px;font:800 14px/1.1 var(--ui,system-ui,sans-serif);cursor:pointer}',
+    '#bcGate button:disabled{opacity:.55;cursor:default}',
+    '#bcGate .bcUser{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}',
+    '.bcTabs{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line,#DDD1E5);border-radius:8px;background:var(--panel2,#F9F5FB)}',
+    '.bcTabs a{display:inline-flex;align-items:center;padding:6px 12px;border-radius:6px;font:700 13px/1.1 var(--ui,system-ui,sans-serif);',
+    'color:var(--muted,#6A5B77);text-decoration:none;white-space:nowrap}',
+    '.bcTabs a:hover{color:var(--ink,#1B1024)}',
+    '.bcTabs a:focus-visible{outline:3px solid var(--hot,#C4006A);outline-offset:1px}',
+    '.bcTabs a[aria-current=page]{background:var(--accent,#682077);color:var(--accent-ink,#fff);cursor:default}'
+  ].join('');
+  var styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
+
+  var gate = null;
+  function node(tag, props, kids) {
+    var n = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      if (k === 'text') n.textContent = props[k]; else n.setAttribute(k, props[k]);
+    });
+    (kids || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+  function openGate(title, msg, opts) {
+    opts = opts || {};
+    if (!gate) {
+      gate = node('div', { id: 'bcGate' });
+      document.body.appendChild(gate);
+    }
+    gate.hidden = false;
+    gate.textContent = '';
+    var box = node('div', { 'class': 'bcBox', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'bcT' });
+    box.appendChild(node('div', { 'class': 'bcBrand' }, [node('b', { text: PAGE === 'posts' ? 'Blog Post Composer' : 'Newsletter Composer' }), node('span', { text: 'Bat City Games & Comics' })]));
+    box.appendChild(node('h2', { id: 'bcT', text: title }));
+    if (msg) box.appendChild(node('p', { 'class': opts.error ? 'bcErr' : '', role: opts.error ? 'alert' : 'status', text: msg }));
+    gate.appendChild(box);
+    return box;
+  }
+  function closeGate() { if (gate) { gate.hidden = true; gate.textContent = ''; } }
+
+  function wait(box, label) {
+    return new Promise(function (resolve) {
+      var b = node('button', { type: 'button', text: label });
+      b.addEventListener('click', function () { resolve(); });
+      box.appendChild(b);
+      b.focus();
+    });
+  }
+
+  // Shows the passcode box until a sign-in works. Resolves with nothing.
+  function loginLoop(intro, firstError) {
+    return new Promise(function (resolve) {
+      var error = firstError || '';
+      (function show() {
+        var box = openGate('Enter the team passcode', error || intro, { error: !!error });
+        var form = node('form', { autocomplete: 'on' });
+        form.appendChild(node('input', { 'class': 'bcUser', type: 'text', name: 'username', autocomplete: 'username', value: 'batcave', tabindex: '-1', 'aria-hidden': 'true' }));
+        form.appendChild(node('label', { 'for': 'bcPass', text: 'Passcode' }));
+        var pass = node('input', { id: 'bcPass', type: 'password', name: 'password', autocomplete: 'current-password', required: 'required' });
+        form.appendChild(pass);
+        var go = node('button', { type: 'submit', text: 'Open the composer' });
+        form.appendChild(go);
+        box.appendChild(form);
+        pass.focus();
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var code = pass.value;
+          if (!code.trim()) return;
+          go.disabled = true; go.textContent = 'Checking...';
+          fetch(API + '/login', {
+            method: 'POST', credentials: 'same-origin', cache: 'no-store',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ passcode: code })
+          }).then(function (r) {
+            if (r.ok) { closeGate(); resolve(); return; }
+            if (r.status === 401) error = 'That passcode did not work. Try again.';
+            else if (r.status === 429) error = 'Too many tries. Wait a few minutes, then try again.';
+            else if (r.status === 503) error = 'This site is not set up yet. Jacob needs to add the passcode in Netlify.';
+            else error = 'Something went wrong (' + r.status + '). Try again.';
+            show();
+          }).catch(function () {
+            error = 'Could not reach the server. Check the connection and try again.';
+            show();
+          });
+        });
+      })();
+    });
+  }
+
+  /* ---------- session ---------- */
+  async function checkSession() {
+    openGate('Checking sign-in...', '');
+    for (;;) {
+      var r;
+      try { r = await fetch(API + '/session', { credentials: 'same-origin', cache: 'no-store' }); }
+      catch (e) { await wait(openGate('Cannot reach the server', 'Check the connection, then try again.', { error: true }), 'Try again'); openGate('Checking sign-in...', ''); continue; }
+      if (r.ok) { closeGate(); return; }
+      if (r.status === 401) { await loginLoop('Everyone on the team uses the same passcode.'); return; }
+      if (r.status === 503) { await wait(openGate('Not set up yet', 'Jacob needs to add the passcode in Netlify, then redeploy.', { error: true }), 'Try again'); openGate('Checking sign-in...', ''); continue; }
+      await wait(openGate('Something went wrong', 'The server answered ' + r.status + '.', { error: true }), 'Try again');
+      openGate('Checking sign-in...', '');
+    }
+  }
+  function ensureSession() {
+    if (!sessionP) sessionP = checkSession().then(addTools);
+    return sessionP;
+  }
+  function relogin() {
+    if (!reloginP) {
+      reloginP = loginLoop('Your sign-in ended. Enter the passcode to pick up where you left off. Your draft is still open and will save once you are back in.')
+        .then(function () { reloginP = null; }, function () { reloginP = null; });
+    }
+    return reloginP;
+  }
+
+  /* ---------- calls ---------- */
+  function codeFor(status) {
+    if (status === 401) return 'unauthenticated';
+    if (status === 403) return 'forbidden';
+    if (status === 404) return 'not-found';
+    if (status === 413) return 'too-large';
+    if (status === 429) return 'rate-limited';
+    return status >= 500 ? 'server' : 'error';
+  }
+  async function call(method, path, body) {
+    if (frozen && method !== 'GET') return { ok: true };
+    var text = body === undefined ? undefined : JSON.stringify(body);
+    var small = text !== undefined && new TextEncoder().encode(text).length < 30000;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var res;
+      try {
+        res = await fetch(path, {
+          method: method, credentials: 'same-origin', cache: 'no-store',
+          headers: text === undefined ? {} : { 'content-type': 'application/json' },
+          body: text,
+          keepalive: small
+        });
+      } catch (e) { var ne = new Error('network'); ne.code = 'network'; throw ne; }
+      if (res.status === 401 && attempt === 0) { await relogin(); continue; }
+      if (!res.ok) { var he = new Error('http ' + res.status); he.code = codeFor(res.status); throw he; }
+      return res.json();
+    }
+  }
+  function track(p) { inflight.add(p); var done = function () { inflight.delete(p); }; p.then(done, done); return p; }
+
+  /* ---------- db: only the pieces the composer uses ---------- */
+  function parsePath(p) {
+    var m = /^([a-z]+)\/([A-Za-z0-9_-]{1,80})$/.exec(p);
+    if (!m) throw new Error('bad path: ' + p);
+    return { c: m[1], id: m[2] };
+  }
+  function docSnap(id, exists, data) {
+    return { id: id, exists: exists, data: function () { return exists ? data : undefined; }, metadata: {} };
+  }
+  var db = {
+    doc: function (p) {
+      var q = parsePath(p);
+      var base = API + '/db/' + q.c + '/' + encodeURIComponent(q.id);
+      return {
+        id: q.id, path: p,
+        get: function () { return call('GET', base).then(function (r) { return docSnap(q.id, !!r.exists, r.data); }); },
+        set: function (d) { return track(call('PUT', base, d).then(function () { return undefined; })); },
+        delete: function () { return track(call('DELETE', base).then(function () { return undefined; })); }
+      };
+    },
+    collection: function (c) {
+      return {
+        get: function () {
+          return call('GET', API + '/db/' + encodeURIComponent(c)).then(function (r) {
+            var docs = r.docs.map(function (d) { return docSnap(d.id, true, d.data); });
+            return { docs: docs, size: docs.length, empty: docs.length === 0, metadata: {}, docChanges: function () { return []; } };
+          });
+        }
+      };
+    }
+  };
+
+  /* ---------- downloads ---------- */
+  var downloads = {
+    save: function (o) {
+      return new Promise(function (resolve, reject) {
+        try {
+          var blob = new Blob([o.data], { type: o.type || 'text/html;charset=utf-8' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = o.filename || 'download.html';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+          resolve();
+        } catch (e) { reject(e); }
+      });
+    }
+  };
+
+  /* ---------- sign out, back up and restore ---------- */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  async function drain() {
+    for (var i = 0; i < 6; i++) {
+      if (!inflight.size) { await sleep(80); if (!inflight.size) return; }
+      await Promise.all(Array.from(inflight).map(function (p) { return p.catch(function () {}); }));
+    }
+  }
+  function dayStamp() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function addTools() {
+    var bar = document.querySelector('.top');
+    var rail = document.querySelector('.rail');
+    if (!bar || !rail || document.getElementById('bcSignOut')) return;
+
+    // Tabs: Newsletter and Blog posts. Leaving a page saves it first.
+    var brand = bar.querySelector('.brand');
+    var tabs = node('nav', { 'class': 'bcTabs', id: 'bcTabs', 'aria-label': 'Composers' });
+    [['news', '/', 'Newsletter'], ['posts', '/posts', 'Blog posts']].forEach(function (t) {
+      var a = node('a', { href: t[1], id: 'bcTab-' + t[0], text: t[2] });
+      if (t[0] === PAGE) a.setAttribute('aria-current', 'page');
+      a.addEventListener('click', async function (e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        if (t[0] === PAGE) return;
+        a.style.opacity = '.6';
+        try { window.dispatchEvent(new Event('pagehide')); await drain(); } catch (err) {}
+        location.href = t[1];
+      });
+      tabs.appendChild(a);
+    });
+    if (brand && brand.nextSibling) bar.insertBefore(tabs, brand.nextSibling); else bar.appendChild(tabs);
+
+    var out = node('button', { 'class': 'btn sm ghost', id: 'bcSignOut', type: 'button', text: 'Sign out' });
+    out.addEventListener('click', async function () {
+      out.disabled = true;
+      try { window.dispatchEvent(new Event('pagehide')); await drain(); } catch (e) {}
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'same-origin', cache: 'no-store' }); } catch (e) {}
+      location.reload();
+    });
+    bar.appendChild(out);
+
+    var status = node('p', { 'class': 'hint', id: 'bcToolsMsg', role: 'status', style: 'margin:8px 0 0' });
+    var say = function (t) { status.textContent = t; };
+    var backup = node('button', { 'class': 'btn sm', id: 'bcBackup', type: 'button', text: 'Back up all drafts' });
+    var restore = node('button', { 'class': 'btn sm', id: 'bcRestore', type: 'button', text: 'Restore from backup' });
+    var file = node('input', { id: 'bcFile', type: 'file', accept: 'application/json,.json', hidden: 'hidden' });
+
+    backup.addEventListener('click', async function () {
+      say('Collecting every draft...');
+      try {
+        var r = await call('GET', API + '/export');
+        await downloads.save({ filename: 'batcave-composer-backup-' + dayStamp() + '.json', data: JSON.stringify(r, null, 1), type: 'application/json' });
+        say('Backup saved to your downloads.');
+      } catch (e) { say('Could not make a backup (' + (e && e.code || 'error') + ').'); }
+    });
+    restore.addEventListener('click', function () { file.value = ''; file.click(); });
+    file.addEventListener('change', async function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      var parsed;
+      try { parsed = JSON.parse(await f.text()); } catch (e) { say('That file is not a backup.'); return; }
+      var cols = parsed && parsed.collections;
+      if (!cols || typeof cols !== 'object') { say('That file is not a composer backup.'); return; }
+      var ni = cols.issues ? Object.keys(cols.issues).length : 0;
+      var np = cols.posts ? Object.keys(cols.posts).length : 0;
+      var parts = [];
+      if (ni) parts.push(ni + ' newsletter issue' + (ni === 1 ? '' : 's'));
+      if (np) parts.push(np + ' blog post' + (np === 1 ? '' : 's'));
+      var what = parts.length ? parts.join(' and ') : 'the saved settings';
+      if (!window.confirm('Restore ' + what + ' from this backup? Anything with the same ID is replaced by the backup version.')) { say('Nothing changed.'); return; }
+      say('Restoring...');
+      try {
+        var r = await call('POST', API + '/import', parsed);
+        frozen = true;
+        say('Restored ' + r.written + ' items. Reloading...');
+        setTimeout(function () { location.reload(); }, 600);
+      } catch (e) { say('Could not restore (' + (e && e.code || 'error') + ').'); }
+    });
+
+    var card = node('div', { 'class': 'card', id: 'bcTools' }, [
+      node('h2', { text: 'Your drafts' }),
+      node('p', { 'class': 'hint', text: 'Drafts are kept on this site and shared by everyone with the passcode. If two people edit the same issue or post at once, the later save wins. One backup file holds the newsletters and the blog posts together.' }),
+      node('div', { style: 'display:flex;flex-wrap:wrap;gap:6px' }, [backup, restore, file]),
+      status
+    ]);
+    rail.appendChild(card);
+  }
+
+  window.claude = {
+    use: async function (name) {
+      if (name === 'db') { await ensureSession(); return db; }
+      if (name === 'downloads') return downloads;
+      return null;
+    }
+  };
+})();
+
+</script>
+<script>
+/* ---------- template data (built from the Code your own file) ---------- */
+const TPL = {"pre": "<!DOCTYPE html>\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n<meta name=\"x-apple-disable-message-reformatting\">\n<meta name=\"format-detection\" content=\"telephone=no,date=no,address=no,email=no,url=no\">\n<meta name=\"color-scheme\" content=\"light dark\">\n<meta name=\"supported-color-schemes\" content=\"light dark\">\n<title>{{ email.subject }}<\/title>\n<link href=\"https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&amp;family=Questrial&amp;display=swap\" rel=\"stylesheet\">\n<style>\nhtml,body{margin:0!important;padding:0!important;width:100%!important}\n*{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}\ntable,td{mso-table-lspace:0;mso-table-rspace:0}\nimg{-ms-interpolation-mode:bicubic;border:0;outline:none;text-decoration:none}\na{color:#410B49}\na[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}\nu+#body a{color:inherit}\n@media only screen and (max-width:640px){\n.wrap{width:100%!important}\n.px{padding-left:20px!important;padding-right:20px!important}\n.card-out{padding-left:20px!important;padding-right:26px!important}\n.h1{font-size:30px!important;line-height:1.1!important}\n.h-panel{font-size:28px!important}\n.magic{font-size:34px!important;letter-spacing:0.03em!important}\n.magic-td{padding-left:12px!important;padding-right:12px!important}\n.stack{display:block!important;width:100%!important;text-align:center!important}\n}\n@media only screen and (max-width:360px){\n.magic{font-size:28px!important;letter-spacing:0.02em!important}\n}\n@media (prefers-color-scheme:dark){\n.outer{background-color:#120A1A!important}\n.paper{background-color:#1E1128!important}\n.ink{color:#F1E9F5!important}\n.muted{color:#BFB4CC!important}\n.hd{color:#E7C3F4!important}\n.hot{color:#FF6FB5!important}\n.lnk{color:#C9FA00!important}\n.rule{border-color:#4A3358!important}\n.card{background-color:#2C1738!important;border-color:#9B4DB3!important}\n}\n<\/style>\n<\/head>\n<body id=\"body\" class=\"outer\" style=\"margin:0;padding:0;background-color:#EFF0F5\" bgcolor=\"#EFF0F5\">\n<div style=\"display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all\">{{ email.preview_text }}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;<\/div>\n<table role=\"presentation\" class=\"outer\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#EFF0F5\" style=\"background-color:#EFF0F5\"><tr><td align=\"center\" style=\"padding:24px 12px 40px\">\n<table role=\"presentation\" class=\"wrap paper\" width=\"640\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#FFFFFF\" style=\"width:100%;max-width:640px;background-color:#FFFFFF\">", "blocks": [{"num": "01", "title": "Header", "hint": "Logo and menu links", "body": "<tr><td class=\"hdr\" align=\"center\" bgcolor=\"#682077\" style=\"background-color:#682077;background-image:radial-gradient(circle,rgba(255,10,138,0.38) 1.6px,transparent 1.7px);background-size:14px 14px;padding:28px 24px 8px\">\n<a href=\"https://batcitygc.com\" style=\"display:inline-block;text-decoration:none\"><img src=\"{{ logo_url }}\" width=\"210\" alt=\"Bat City Games &amp; Comics\" style=\"display:block;width:210px;max-width:100%;height:auto;border:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.2;color:#C9FA00\"><\/a>\n<div style=\"padding:12px 0 14px;text-align:center\"><a href=\"https://batcitygc.com/collections\" style=\"display:inline-block;padding:8px 11px;color:#C9FA00;text-decoration:none;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:12px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">Products<\/a><a href=\"https://batcitygc.com/pages/events\" style=\"display:inline-block;padding:8px 11px;color:#C9FA00;text-decoration:none;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:12px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">Events<\/a><a href=\"https://batcitygc.com/pages/managecomics\" style=\"display:inline-block;padding:8px 11px;color:#C9FA00;text-decoration:none;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:12px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">Subscriptions<\/a><a href=\"https://batcitygc.com/collections/game-table-reservations\" style=\"display:inline-block;padding:8px 11px;color:#C9FA00;text-decoration:none;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:12px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">Reserve a table<\/a><\/div>\n<\/td><\/tr>"}, {"num": "02", "title": "Date bar", "hint": "Issue date and shop hours", "body": "<tr><td class=\"px\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:10px 32px\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n<td align=\"left\" class=\"stack\" valign=\"middle\" style=\"font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.5;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">Thursday, [Month D]<\/td>\n<td align=\"right\" class=\"stack\" valign=\"middle\" style=\"font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.5;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">Open daily, 10 AM to 10 PM<\/td>\n<\/tr><\/table>\n<\/td><\/tr>"}, {"num": "03", "title": "Greeting", "hint": "Hey, neighbor (optional)", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:28px 32px 0\">\n<p class=\"ink\" style=\"margin:0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">{% if customer.first_name != blank %}Hey {{ customer.first_name }},{% else %}Hey, neighbor,{% endif %}<\/p>\n<\/td><\/tr>"}, {"num": "04", "title": "From the Counter", "hint": "Lead story", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:40px 32px 8px\">\n<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:2px solid #0E1B4D;border-collapse:separate\"><tr><td class=\"chip\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:6px 12px\"><h2 style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">I &middot; From the Counter<\/h2><\/td><\/tr><\/table>\n<h1 class=\"hd h1\" style=\"margin:18px 0 20px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:36px;line-height:1.06;color:#410B49\">[Headline: one idea, said the way you would say it at the register]<\/h1>\n<p class=\"ink\" style=\"margin:0 0 16px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">[Open like you would at the counter. One story, two or three short paragraphs. Plain words, a little joke if it earns its place.]<\/p>\n<p class=\"ink\" style=\"margin:0 0 16px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">[What is new, what is on the truck, what someone asked about this week. Name the thing, not the category.]<\/p>\n<p class=\"hot\" style=\"margin:0 0 0px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:17px;line-height:1.6;color:#D4006F\">[Close on one named night or release: Role Playing Night is still Tuesday.]<\/p>\n<\/td><\/tr>"}, {"num": "05", "title": "Capsule review", "hint": "Title, verdict, reviewer", "body": "<tr><td class=\"paper card-out\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:32px 38px 14px 32px\">\n<table role=\"presentation\" class=\"card\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#F4ECF7\" style=\"background-color:#F4ECF7;border:3px solid #410B49;border-collapse:separate;box-shadow:6px 6px 0 #FF0A8A\">\n<tr><td class=\"cardhead\" bgcolor=\"#410B49\" style=\"background-color:#410B49;padding:8px 18px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:11px;line-height:1.3;letter-spacing:0.16em;text-transform:uppercase;color:#C9FA00\">Capsule Review<\/td><\/tr>\n<tr><td style=\"padding:20px 22px 22px\">\n<h3 class=\"hd\" style=\"margin:0 0 6px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:24px;line-height:1.15;color:#410B49\">[Title of the book or game]<\/h3>\n<p class=\"muted\" style=\"margin:0 0 14px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">[Publisher &middot; creators &middot; on sale date]<\/p>\n<p class=\"ink\" style=\"margin:0 0 12px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#0E1B4D\">[Verdict in one line. Who it is for. The one thing it does best. The catch.]<\/p>\n<p class=\"muted\" style=\"margin:0 0 0px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:14px;line-height:1.5;color:#4A547A\">Reviewed by [Name]<\/p>\n<\/td><\/tr>\n<\/table>\n<\/td><\/tr>"}, {"num": "06", "title": "The Pull Box", "hint": "New releases by shelf", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:36px 32px 8px\">\n<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:2px solid #0E1B4D;border-collapse:separate\"><tr><td class=\"chip\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:6px 12px\"><h2 style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">II &middot; The Pull Box<\/h2><\/td><\/tr><\/table>\n<p class=\"ink\" style=\"margin:18px 0 8px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">[One line on what came off the truck.]<\/p>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Title #]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines: who made it, why a regular cares, where a new reader can start.]<\/p><\/td><\/tr>\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Title #]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines. Lead with what is good about it.]<\/p><\/td><\/tr>\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Title #]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines. Mention if it is the first of a run.]<\/p><\/td><\/tr>\n<\/table>\n<h3 class=\"hot\" style=\"margin:28px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:13px;line-height:1.3;letter-spacing:0.16em;text-transform:uppercase;color:#D4006F\">[Shelf name]<\/h3>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Title #]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines.]<\/p><\/td><\/tr>\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Title #]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines.]<\/p><\/td><\/tr>\n<\/table>\n<\/td><\/tr>"}, {"num": "07", "title": "Feature panel", "hint": "FOC Sunday or a big announcement", "body": "<tr><td class=\"paper\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:32px 0 0\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n<td class=\"px\" bgcolor=\"#682077\" style=\"background-color:#682077;background-image:radial-gradient(circle,rgba(255,10,138,0.38) 1.6px,transparent 1.7px);background-size:14px 14px;padding:36px 32px 24px\">\n<h2 class=\"h-panel\" style=\"margin:0 0 10px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:34px;line-height:1.05;letter-spacing:0.02em;text-transform:uppercase;color:#C9FA00\">FOC Sunday<\/h2>\n<p style=\"margin:0 0 12px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#FFFFFF\">FOC means Final Order Cutoff: the Sunday we lock in how many copies of a coming comic we order. Pre-order by then and yours is on the way.<\/p>\n<p style=\"margin:0 0 22px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#E9D6EF\">[Two or three titles to pre-order, with links.]<\/p>\n<a href=\"https://batcitygc.com/pages/managecomics\" style=\"display:inline-block;margin:0 16px 14px 0;background-color:#C9FA00;color:#0E1B4D;padding:15px 22px;box-shadow:4px 4px 0 #FF0A8A;text-decoration:none;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:14px;line-height:1.2;letter-spacing:0.06em;text-transform:uppercase\">Pre-order on your pull list<\/a><a href=\"https://batcitygc.com/pages/managecomics\" style=\"display:inline-block;margin:0 0 14px 0;border:2px solid #FFFFFF;color:#FFFFFF;padding:13px 20px;text-decoration:none;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:14px;line-height:1.2;letter-spacing:0.06em;text-transform:uppercase\">Lapsed? We saved your spot<\/a>\n<\/td><\/tr><\/table>\n<\/td><\/tr>"}, {"num": "08", "title": "Tabletop Wire", "hint": "Dated news items", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:36px 32px 8px\">\n<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:2px solid #0E1B4D;border-collapse:separate\"><tr><td class=\"chip\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:6px 12px\"><h2 style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">III &middot; Tabletop Wire<\/h2><\/td><\/tr><\/table>\n<p class=\"ink\" style=\"margin:18px 0 8px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">[One line setting up the week on the tabletop side.]<\/p>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule\" style=\"padding:18px 0;border-top:1px dashed #CDBFD6;\"><span style=\"display:inline-block;background-color:#410B49;color:#C9FA00;padding:5px 9px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:11px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">[Day, Mon D]<\/span><h3 class=\"hd\" style=\"margin:10px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Set or release name]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines. What it is, why it matters, anything a newcomer needs to know.]<\/p><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:18px 0;border-top:1px dashed #CDBFD6;\"><span style=\"display:inline-block;background-color:#410B49;color:#C9FA00;padding:5px 9px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:11px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">[Day, Mon D]<\/span><h3 class=\"hd\" style=\"margin:10px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Set or release name]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines.]<\/p><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:18px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;\"><span style=\"display:inline-block;background-color:#410B49;color:#C9FA00;padding:5px 9px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:11px;line-height:1.3;letter-spacing:0.14em;text-transform:uppercase\">[Dates]<\/span><h3 class=\"hd\" style=\"margin:10px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\">[Set or release name]<\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[Two lines.]<\/p><\/td><\/tr>\n<\/table>\n<\/td><\/tr>"}, {"num": "17", "title": "On the Blog", "hint": "Posts from the past week", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:36px 32px 8px\">\n<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:2px solid #0E1B4D;border-collapse:separate\"><tr><td class=\"chip\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:6px 12px\"><h2 style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">IV &middot; On the Blog<\/h2><\/td><\/tr><\/table>\n<p class=\"ink\" style=\"margin:18px 0 8px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">[One line: what went up on The Batcave this week.]<\/p>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\"><a class=\"lnk\" href=\"https://batcitygc.com/blogs/batcave/post-handle\" style=\"color:#410B49;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;text-decoration:underline;text-decoration-color:#FF0A8A;text-decoration-thickness:2px;text-underline-offset:3px\">[Post title]<\/a><\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[One line: what the post is and who it is for.]<\/p><\/td><\/tr>\n<tr><td class=\"rule hot\" valign=\"top\" width=\"24\" style=\"width:24px;padding:16px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#FF0A8A\">&#9670;<\/td><td class=\"rule\" valign=\"top\" style=\"padding:16px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.25;color:#410B49\"><a class=\"lnk\" href=\"https://batcitygc.com/blogs/batcave/post-handle\" style=\"color:#410B49;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;text-decoration:underline;text-decoration-color:#FF0A8A;text-decoration-thickness:2px;text-underline-offset:3px\">[Post title]<\/a><\/h3><p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[One line.]<\/p><\/td><\/tr>\n<\/table>\n<p class=\"ink\" style=\"margin:18px 0 0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">More on <a class=\"lnk\" href=\"https://batcitygc.com/blogs/batcave\" style=\"color:#410B49;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;text-decoration:underline;text-decoration-color:#FF0A8A;text-decoration-thickness:2px;text-underline-offset:3px\">The Batcave<\/a>.<\/p>\n<\/td><\/tr>"}, {"num": "09", "title": "Events", "hint": "Dates at the shop this week", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:36px 32px 0\">\n<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:2px solid #0E1B4D;border-collapse:separate\"><tr><td class=\"chip\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:6px 12px\"><h2 style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">V &middot; Events<\/h2><\/td><\/tr><\/table>\n<p class=\"ink\" style=\"margin:18px 0 22px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#0E1B4D\">New to any of this? Say so at the counter. We teach, and nobody gets graded.<\/p>\n<h3 class=\"hot\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:13px;line-height:1.3;letter-spacing:0.16em;text-transform:uppercase;color:#D4006F\">At Bat City Games &amp; Comics<\/h3>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#410B49\" style=\"width:62px;background-color:#410B49\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#C9FA00\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">THU<\/div><div style=\"font-size:28px;line-height:1.15\">29<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">OCT<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">[Event name]<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">[Start to end time &middot; price &middot; one line on what happens]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#410B49\" style=\"width:62px;background-color:#410B49\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#C9FA00\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">FRI<\/div><div style=\"font-size:28px;line-height:1.15\">30<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">OCT<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">[Event name]<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">[Start to end time &middot; price &middot; one line]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#410B49\" style=\"width:62px;background-color:#410B49\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#C9FA00\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">SAT<\/div><div style=\"font-size:28px;line-height:1.15\">31<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">OCT<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">[Event name]<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">[Start to end time &middot; price &middot; one line]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<\/table>\n<\/td><\/tr>"}, {"num": "10", "title": "Every week", "hint": "The weekly nights, all 11 tiles", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:22px 32px 0\">\n<h3 class=\"hot\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:13px;line-height:1.3;letter-spacing:0.16em;text-transform:uppercase;color:#D4006F\">Every week<\/h3>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">MON<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Warhammer Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; Bring an army. Yes, the unpainted one. Nobody is checking.<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">MON<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Riftbound Nexus Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; $10 &middot; [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">TUE<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Role Playing Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; An open night for tabletop RPG groups. Bring yours, or come curious.<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">WED<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Commander Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; Commander is Magic for four, with 100-card decks built around one legendary commander.<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">THU<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Sorcery Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; [One line: format, what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">FRI<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Star Wars Unlimited Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">FRI<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6:30 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Flesh and Blood Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6:30 to 10 PM &middot; $6 &middot; Casual play. [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">FRI<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Lonely Board Game Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">SAT<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">6 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Board Games Night<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">6 to 10 PM &middot; free &middot; [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">SUN<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">10 AM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Kids Magic Club<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">10 AM to 2 PM &middot; ages 8 to 16 &middot; $30 &middot; [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<tr><td class=\"rule\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"62\" valign=\"top\" style=\"width:62px\"><table role=\"presentation\" width=\"62\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#D4006F\" style=\"width:62px;background-color:#D4006F\"><tr><td align=\"center\" style=\"padding:8px 0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;color:#FFFFFF\"><div style=\"font-size:11px;line-height:1;letter-spacing:0.12em\">EVERY<\/div><div style=\"font-size:22px;line-height:1.15\">SUN<\/div><div style=\"font-size:10px;line-height:1;letter-spacing:0.12em\">2 PM<\/div><\/td><\/tr><\/table><\/td><td width=\"16\" style=\"width:16px;font-size:0;line-height:0\">&nbsp;<\/td><td valign=\"top\"><h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:1.25;color:#410B49\">Pok&eacute;mon Free Play<\/h3><p class=\"muted\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:#4A547A\">2 to 4 PM &middot; free &middot; [One line: what to bring, who it is for.]<\/p><\/td><\/tr><\/table><\/td><\/tr>\n<\/table>\n<\/td><\/tr>"}, {"num": "11", "title": "Coming up", "hint": "Lime box teaser", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:24px 32px 0\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:18px 20px\">\n<h3 style=\"margin:0 0 8px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:13px;line-height:1.3;letter-spacing:0.16em;text-transform:uppercase;color:#0E1B4D\">Coming up<\/h3>\n<p style=\"margin:0 0 6px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#0E1B4D\"><strong style=\"font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800\">[Day, Mon D]:<\/strong> [What is happening.]<\/p>\n<p style=\"margin:0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#0E1B4D\"><strong style=\"font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800\">[Day, Mon D]:<\/strong> [What is happening.]<\/p>\n<\/td><\/tr><\/table>\n<\/td><\/tr>"}, {"num": "12", "title": "Around Austin", "hint": "Outside events and calendar link", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:32px 32px 8px\">\n<h3 class=\"hot\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:13px;line-height:1.3;letter-spacing:0.16em;text-transform:uppercase;color:#D4006F\">Around Austin<\/h3>\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n<tr><td class=\"rule ink\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\"><a class=\"lnk\" href=\"https://batcitygc.com/pages/events\" style=\"color:#410B49;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;text-decoration:underline;text-decoration-color:#FF0A8A;text-decoration-thickness:2px;text-underline-offset:3px\">[Thing happening around town]<\/a> &middot; [Date]. [One line on why a regular at the shop would care.]<\/td><\/tr>\n<tr><td class=\"rule ink\" style=\"padding:14px 0;border-top:1px dashed #CDBFD6;border-bottom:1px dashed #CDBFD6;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\"><a class=\"lnk\" href=\"https://batcitygc.com/pages/events\" style=\"color:#410B49;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;text-decoration:underline;text-decoration-color:#FF0A8A;text-decoration-thickness:2px;text-underline-offset:3px\">[Another one]<\/a> &middot; [Date]. [One line.]<\/td><\/tr>\n<\/table>\n<p class=\"ink\" style=\"margin:22px 0 0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#0E1B4D\">Full calendar: <a class=\"lnk\" href=\"https://batcitygc.com/pages/events\" style=\"color:#410B49;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;text-decoration:underline;text-decoration-color:#FF0A8A;text-decoration-thickness:2px;text-underline-offset:3px\">the Events page<\/a>.<\/p>\n<\/td><\/tr>"}, {"num": "13", "title": "Picture and text", "hint": "A photo with a few lines (optional)", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:36px 32px 8px\">\n<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:2px solid #0E1B4D;border-collapse:separate\"><tr><td class=\"chip\" bgcolor=\"#C9FA00\" style=\"background-color:#C9FA00;padding:6px 12px\"><h2 style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:0.14em;text-transform:uppercase;color:#0E1B4D\">[Section label]<\/h2><\/td><\/tr><\/table>\n<img src=\"https://REPLACE-ME/photo.jpg\" width=\"576\" alt=\"[Describe the picture in a few words]\" style=\"display:block;width:100%;max-width:576px;height:auto;margin:18px 0 14px;border:0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;color:#4A547A\">\n<h3 class=\"hd\" style=\"margin:0px 0 4px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:20px;line-height:1.25;color:#410B49\">[Caption headline]<\/h3>\n<p class=\"ink\" style=\"margin:0 0 0px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#0E1B4D\">[One or two lines.]<\/p>\n<\/td><\/tr>"}, {"num": "14", "title": "The Magic Word", "hint": "Held back until Brendan approves reward and cap", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:36px 32px 0\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n<td class=\"magic-td\" align=\"center\" bgcolor=\"#410B49\" style=\"background-color:#410B49;background-image:radial-gradient(circle,rgba(255,10,138,0.30) 1.6px,transparent 1.7px);background-size:14px 14px;padding:30px 24px 32px\">\n<h2 style=\"margin:0 0 6px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:13px;line-height:1.3;letter-spacing:0.2em;text-transform:uppercase;color:#FFFFFF\">The Magic Word<\/h2>\n<p class=\"magic\" style=\"margin:0 0 8px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:60px;line-height:1;letter-spacing:0.06em;color:#C9FA00;overflow-wrap:break-word;word-wrap:break-word\">WORD<\/p>\n<p style=\"margin:0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.55;color:#FFFFFF\">Say it at the counter for [reward, once Brendan approves it].<\/p>\n<\/td><\/tr><\/table>\n<\/td><\/tr>"}, {"num": "15", "title": "Sign-off", "hint": "Closing line and names", "body": "<tr><td class=\"paper px\" bgcolor=\"#FFFFFF\" style=\"background-color:#FFFFFF;padding:40px 32px 44px\">\n<p class=\"hd\" style=\"margin:0 0 6px;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.2;color:#410B49\">See you at the counter,<\/p>\n<p class=\"ink\" style=\"margin:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:17px;line-height:1.5;color:#0E1B4D\">Jacob Clifton &amp; the Bat City Games &amp; Comics Crew<\/p>\n<\/td><\/tr>"}, {"num": "16", "title": "Footer", "hint": "Address, unsubscribe, open tracking", "body": "<tr><td class=\"foot\" align=\"center\" bgcolor=\"#410B49\" style=\"background-color:#410B49;padding:34px 32px 36px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#EAD9EE\">\n<img src=\"{{ logo_url }}\" width=\"130\" alt=\"Bat City Games &amp; Comics\" style=\"display:block;margin:0 auto 14px;width:130px;max-width:100%;height:auto;border:0;font-family:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:800;font-size:16px;color:#C9FA00\">\n<p style=\"margin:0 0 14px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#EAD9EE\">5001 Highway 290, Austin, Texas 78735 &middot; <a href=\"tel:+15122762870\" style=\"color:#EAD9EE;text-decoration:none;white-space:nowrap\">(512) 276-2870<\/a><br>Open daily, 10 AM to 10 PM<\/p>\n<p style=\"margin:0 0 14px;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#EAD9EE\"><a href=\"https://www.instagram.com/batcityhq/\" style=\"color:#C9FA00;font-weight:700\">Instagram @batcityhq<\/a> &middot; <a href=\"https://www.facebook.com/profile.php?id=61550748526278\" style=\"color:#C9FA00;font-weight:700\">Facebook<\/a> &middot; <a href=\"https://batcitygc.com\" style=\"color:#C9FA00;font-weight:700\">batcitygc.com<\/a><\/p>\n<p style=\"margin:0;font-family:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#EAD9EE\">You are getting this because you signed up for Bat City Games &amp; Comics emails.<br><a href=\"{{ unsubscribe_url }}\" style=\"color:#EAD9EE;text-decoration:underline\">Unsubscribe<\/a> &middot; <a href=\"https://batcitygc.com/pages/email-preferences\" style=\"color:#EAD9EE;text-decoration:underline\">Update preferences<\/a><\/p>\n<div style=\"margin:0;font-size:1px;line-height:1px\">{{ open_tracking_block }}<\/div>\n<\/td><\/tr>"}], "post": "<\/table>\n<\/td><\/tr><\/table>\n<\/body>\n<\/html>\n"};
+const LOGO = "data:image/png;base64,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
