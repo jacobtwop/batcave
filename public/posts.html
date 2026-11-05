@@ -272,7 +272,7 @@ details.card[open]>summary{margin-bottom:8px}
           </figure>
 
           <section class="capsule" id="capsule" aria-label="Capsule review card" hidden>
-            <p class="tag"><span>Capsule review &middot; Reviewed by</span><input type="text" data-f="cap.reviewer" aria-label="Reviewer" placeholder="Reviewer's name"></p>
+            <p class="tag"><span>Capsule review</span></p>
             <div class="cbody">
               <input class="ctitle" type="text" data-f="cap.title" aria-label="What is being reviewed" placeholder="What you are reviewing">
               <input class="cmeta" type="text" data-f="cap.details" aria-label="Publisher, creators, format" placeholder="Publisher, creators, format">
@@ -679,23 +679,24 @@ details.card[open]>summary{margin-bottom:8px}
 const TYPES = {
   guide:  {label:'Guide',  tag:'Guides',  target:1000, lo:800, hi:1300, noPrices:true,
     blurb:'About 1,000 words. Turns a first visit into a second and ends at a named night. No prices, so it does not go stale.',
-    hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Signed by the shop unless you type a name here. Set Shopify\'s own Author box to the same name.'},
+    hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Jacob Clifton is the author, stated once. Set Shopify\'s own Author box to the same name.'},
   short:  {label:'Short post', tag:'News', target:500, lo:350, hi:650,
     blurb:'About 500 words. A quick how-to, a restock alert, a roundup.',
-    hint:'About 500 words. Prices and promotions need Brendan\'s yes.', crew:true, byline:'Signed by the shop unless you type a name here. Set Shopify\'s own Author box to the same name.'},
+    hint:'About 500 words. Prices and promotions need Brendan\'s yes.', crew:true, byline:'Jacob Clifton is the author, stated once. Set Shopify\'s own Author box to the same name.'},
   capsule:{label:'Capsule review', tag:'Reviews', min:100, hi:450, noPrices:true, noScores:true,
-    blurb:'A signed review with the eight set questions. A plain verdict, no scores, no prices, no spoilers past the first act.',
-    hint:'The reviewer signs it and picks what gets reviewed. 100 words or more, a plain verdict, no scores, no prices.', byline:'Leave empty to sign it with the reviewer\'s name. Set Shopify\'s own Author box to the same name.'},
+    blurb:'A review with the eight set questions. A plain verdict, no scores, no prices, no spoilers past the first act. It carries no name.',
+    hint:'The reviewer picks what gets reviewed. No name goes on a review. 100 words or more, a plain verdict, no scores, no prices.', byline:'Reviews carry no name, so this stays empty. Shopify\'s own Author box still needs one (see Fields).'},
   staff:  {label:'Staff pick', tag:'Staff Picks', target:300, lo:120, hi:500,
     blurb:'A staff member\'s pick, in their words, or Jacob\'s with their okay. Short.',
     hint:'Written both ways: by the staff member, or by Jacob with their okay. Staff profiles and quotes need Brendan\'s yes.',
     byline:'By the staff member: put their name. By Jacob: put Jacob Clifton. Set Shopify\'s own Author box to the same name.'},
   news:   {label:'Release or event news', tag:'News', target:400, lo:150, hi:600,
     blurb:'What is coming and when. Event and prerelease details need Brendan\'s yes.',
-    hint:'Mark any date you have not confirmed as "date unconfirmed". Event and prerelease details need Brendan\'s yes.', crew:true, byline:'Signed by the shop unless you type a name here. Set Shopify\'s own Author box to the same name.'}
+    hint:'Mark any date you have not confirmed as "date unconfirmed". Event and prerelease details need Brendan\'s yes.', crew:true, byline:'Jacob Clifton is the author, stated once. Set Shopify\'s own Author box to the same name.'}
 };
 const TYPE_ORDER = ['guide','short','capsule','staff','news'];
-const CREW = 'Bat City Games & Comics Crew';   // the shop's byline for guides, short posts and news
+const AUTHOR = 'Jacob Clifton';                  // the author of guides, short posts and news, stated once (settled Nov 5)
+const OLD_CREW = 'Bat City Games & Comics Crew';  // the earlier default; drafts saved with it are moved to AUTHOR on load
 
 const SCAFFOLD = {
 guide:
@@ -756,7 +757,6 @@ const NIGHTS = [
   ['FRI','Flesh and Blood Night'],
   ['FRI','Open Seat Board Game Night'],
   ['SAT','Board Games Night'],
-  ['SUN','FOC Sunday'],
   ['SUN','Bat City Magic Club'],
   ['SUN','Pokémon Open Play']
 ];
@@ -765,7 +765,7 @@ const TAG_SUGGEST = ['Guides','Reviews','Staff Picks','News','Events','Pull List
 const CONFIRMS = {
   guide:  [['facts','Every title, date and quote is real and checked against a source I opened']],
   short:  [['facts','Every title, date and quote is real and checked against a source I opened (or marked "date unconfirmed")'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']],
-  capsule:[['read','The reviewer has read or played it'],['spoil','Nothing past the first act is given away'],['signed','The reviewer picked it and signs it'],['facts','Every title and detail is real and checked against a source I opened']],
+  capsule:[['read','The reviewer has read or played it'],['spoil','Nothing past the first act is given away'],['signed','The reviewer picked it, and no name is on it'],['facts','Every title and detail is real and checked against a source I opened']],
   staff:  [['okay','The staff member has OK\'d this, including any quote'],['staffyes','Brendan has said yes to the staff profile or quote'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']],
   news:   [['facts','Every date is confirmed against a publisher, distributor or organizer page (or marked "date unconfirmed")'],['event','Brendan has said yes to the event and prerelease details'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']]
 };
@@ -792,7 +792,7 @@ let ed = null;
 function blankDoc(type){
   const t = TYPES[type];
   return {
-    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'',
+    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? AUTHOR : '', alt:'', seoTitle:'', seoDesc:'', handle:'',
     cap:{title:'',details:'',verdict:'',reviewer:'',meets:'',like:'',required:'',where:'',time:'',skip:'',gift:'',pull:''},
     night:{on:type==='guide', day:'', name:'', time:'6 to 10 PM', blurb:'', link:''},
     body:SCAFFOLD[type], confirm:{}, updatedAt:new Date().toISOString()
@@ -803,13 +803,15 @@ function mergeDoc(d){
   const o = Object.assign(b, d);
   o.cap = Object.assign(b.cap, d.cap||{}); o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
   o.body = typeof d.body === 'string' ? d.body : '';
+  if((o.byline||'').trim()===OLD_CREW) o.byline = TYPES[o.type].crew ? AUTHOR : '';   // the shop crew byline is retired
+  if(o.type==='capsule'){ o.byline=''; o.cap.reviewer=''; }                          // a review carries no name
   return o;
 }
 function stripDoc(s){ const o = Object.assign({}, s); delete o.id; return o; }
 function postName(s){ return (s.title||'').trim() || (TYPES[s.type].label+' draft, '+shortDate(new Date(s.created||Date.now()))); }
 const nightOn = () => !!S && (S.type==='guide' || !!S.night.on);
-// What readers see, and what the Author box in Shopify should say: the typed byline, else the reviewer (capsule), else the shop (guide, short post, news)
-function effByline(){ const b=(S.byline||'').trim(); if(b) return b; if(S.type==='capsule') return S.cap.reviewer.trim(); return TYPES[S.type].crew? CREW : ''; }
+// What readers see: the typed byline, else Jacob Clifton (guide, short post, news). A capsule review carries no name.
+function effByline(){ if(S.type==='capsule') return ''; const b=(S.byline||'').trim(); if(b) return b; return TYPES[S.type].crew? AUTHOR : ''; }
 
 /* ---------- body: clean HTML in, clean HTML out ---------- */
 const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','UL','OL','BLOCKQUOTE','HR','TABLE','SECTION','ARTICLE','FIGURE','PRE','HEADER','FOOTER']);
@@ -1144,7 +1146,6 @@ function runChecks(){
   if(S.type==='capsule'){
     add(S.cap.title.trim()?'ok':'warn', S.cap.title.trim()?'Card names what is reviewed':'Card needs what is being reviewed');
     add(S.cap.verdict.trim()?'ok':'warn', S.cap.verdict.trim()?'Verdict is in':'Add the one-line verdict');
-    add((S.cap.reviewer.trim()||S.byline.trim())?'ok':'warn', (S.cap.reviewer.trim()||S.byline.trim())? 'Signed by '+(S.cap.reviewer.trim()||S.byline.trim()) : 'Reviewers sign their reviews: add a name');
     const answered=CAPQ.filter(q=>S.cap[q[0]].trim()).length;
     add(answered?'ok':'warn', answered+' of 8 questions answered (six honest answers beat eight padded)');
     const longQ=CAPQ.filter(q=>wordCount(S.cap[q[0]])>60).length; if(longQ) add('warn', longQ+' answer'+(longQ===1?' is':'s are')+' long. One or two sentences each.');
@@ -1177,8 +1178,8 @@ function refresh(){
   if(!S) return;
   const words=wordCount(textFromHtml(S.body)), T=TYPES[S.type];
   $('#chipOut').textContent=firstTag()||'The Batcave';
-  const by=effByline() || 'Author';
-  $('#bylineOut').textContent=by+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+Math.max(1,Math.ceil(words/200))+' min read';
+  const by=effByline() || (S.type==='capsule' ? '' : 'Author');
+  $('#bylineOut').textContent=[by, new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), Math.max(1,Math.ceil(words/200))+' min read'].filter(Boolean).join(' · ');
   const goal = T.min? T.min+'+' : T.target.toLocaleString('en-US');
   const good = T.min? (words>=T.min&&words<=T.hi) : (words>=T.lo&&words<=T.hi);
   $('#count').innerHTML='<b>'+words.toLocaleString('en-US')+'</b> words <span class="'+(good?'okc':'')+'">of about '+goal+'</span>';
@@ -1259,6 +1260,8 @@ function applyType(){
   $('#typeHint').textContent=T.hint;
   $('#bylineHint').textContent=T.byline;
   $('#bylineHint').hidden=!T.byline;
+  $('#fByline').disabled = S.type==='capsule';
+  $('#fByline').placeholder = S.type==='capsule' ? 'Reviews carry no name' : 'Who signs this post';
   const on=nightOn();
   $('#nightCard').hidden=!on; $('#addNight').hidden=on;
   $('#rmNight').hidden = S.type==='guide';
@@ -1333,7 +1336,6 @@ function shopifyRows(){
     meta.cap_title=S.cap.title.trim();
     meta.cap_details=S.cap.details.trim();
     meta.cap_verdict=S.cap.verdict.trim();
-    meta.cap_reviewer=S.cap.reviewer.trim();
     CAPQ.forEach(([k])=>{ meta['cap_'+k]=S.cap[k].trim(); });
   }
   if(nightOn()){
@@ -1348,7 +1350,8 @@ function shopifyRows(){
   add('Search engine listing','Meta description',S.seoDesc.trim());
   add('Search engine listing','URL handle',(S.handle.trim()||suggestHandle()));
   add('Right column','Featured image alt text',S.alt.trim());
-  add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
+  if(S.type==='capsule') add('Right column','Author (Shopify needs an author: Jacob Clifton. No name shows on a review, because the byline field stays empty)',AUTHOR);
+  else add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
   add('Right column','Tags',S.tags.trim());
   return rows;
 }
@@ -1365,7 +1368,7 @@ function openFields(bodyCopied){
   else if(bodyCopied===false) html+='<div class="status warn">The browser would not copy here. Click the Body box below, press Ctrl or Cmd A, then Ctrl or Cmd C.</div>';
   if(checks.length) html+='<div><h3>Still open ('+checks.length+')</h3><ul class="checks" style="margin-top:6px">'+pills(checks)+'</ul></div>';
   else html+='<div class="status ok">Every check is clear.</div>';
-  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft: Brendan approves it.</p>';
+  html+='<p class="dim" style="margin:0">'+(S.type==='capsule' ? 'A review carries no name, so the byline field stays empty. Shopify still needs an author in its own Author box: set it to Jacob Clifton. ' : 'The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. ')+'In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft: Brendan approves it.</p>';
   let lastWhere='';
   rows.forEach((r,i)=>{
     const empty=!r.value && !r.always;
@@ -1423,8 +1426,8 @@ function wire(){
     const old=TYPES[S.type], nu=TYPES[e.target.value];
     if(S.tags.trim()===old.tag) { S.tags=nu.tag; $('#fTags').value=S.tags; }
     S.type=e.target.value; if(S.type==='guide') S.night.on=true;
-    if(!nu.crew && S.byline.trim()===CREW) S.byline='';          // the shop's byline does not follow a review or a staff pick
-    else if(nu.crew && !S.byline.trim()) S.byline=CREW;
+    if(S.type==='capsule' || (!nu.crew && S.byline.trim()===AUTHOR)) S.byline='';   // a review carries no name, and a staff pick names its own writer
+    else if(nu.crew && !S.byline.trim()) S.byline=AUTHOR;
     $('#fByline').value=S.byline;
     applyType(); scheduleSave(); refresh();
   };
@@ -1502,6 +1505,6 @@ async function boot(){
   if(db && index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id);
 }
 boot();
-window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES };
+window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc };
 </script>
 </body></html>
