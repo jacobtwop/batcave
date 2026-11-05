@@ -1316,33 +1316,40 @@ async function deletePost(){
 }
 
 /* ---------- Shopify fields ---------- */
+// The metafields, top to bottom, in the order Shopify's blog post page lists them (read off the live page, Nov 5).
+// Shopify shows all 18 on every post; the list below only lists the ones this kind of post uses.
+const META_ORDER = ['night_link','night_blurb','night_time','night_name','night_day',
+  'cap_pull','cap_gift','cap_skip','cap_time','cap_where','cap_required','cap_like','cap_meets','cap_reviewer','cap_verdict','cap_details','cap_title',
+  'byline'];
+// Rows run in the order of Shopify's page: left column (Title, Content, Excerpt, Metafields, Search engine listing), then the right column.
 function shopifyRows(){
   const rows=[], add=(where,label,value,o)=>rows.push(Object.assign({where,label,value:value||''},o||{}));
   syncBody();
   add('Title','Title',S.title.trim());
   add('Content: press the <> button in the editor, then paste','Body (HTML)',S.body,{mono:true,always:true});
   add('Excerpt','Excerpt',S.excerpt.trim());
-  add('Image','Featured image alt text',S.alt.trim());
-  add('Tags','Tags',S.tags.trim());
-  add('Author box','Author (Shopify\'s own Author box: set it to the same name)',effByline());
+  const meta={ byline:effByline() };
+  if(S.type==='capsule'){
+    meta.cap_title=S.cap.title.trim();
+    meta.cap_details=S.cap.details.trim();
+    meta.cap_verdict=S.cap.verdict.trim();
+    meta.cap_reviewer=S.cap.reviewer.trim();
+    CAPQ.forEach(([k])=>{ meta['cap_'+k]=S.cap[k].trim(); });
+  }
+  if(nightOn()){
+    meta.night_day=S.night.day.trim();
+    meta.night_name=S.night.name.trim();
+    meta.night_time=S.night.time.trim();
+    meta.night_blurb=S.night.blurb.trim();
+    meta.night_link=S.night.link.trim();
+  }
+  META_ORDER.concat(Object.keys(meta).filter(k=>META_ORDER.indexOf(k)<0)).forEach(k=>{ if(k in meta) add('Metafields',k,meta[k],{field:true}); });
   add('Search engine listing','Page title',S.seoTitle.trim());
   add('Search engine listing','Meta description',S.seoDesc.trim());
   add('Search engine listing','URL handle',(S.handle.trim()||suggestHandle()));
-  add('Post fields','byline',effByline(),{field:true});
-  if(S.type==='capsule'){
-    add('Post fields','cap_title',S.cap.title.trim(),{field:true});
-    add('Post fields','cap_details',S.cap.details.trim(),{field:true});
-    add('Post fields','cap_verdict',S.cap.verdict.trim(),{field:true});
-    add('Post fields','cap_reviewer',S.cap.reviewer.trim(),{field:true});
-    CAPQ.forEach(([k])=>add('Post fields','cap_'+k,S.cap[k].trim(),{field:true}));
-  }
-  if(nightOn()){
-    add('Post fields','night_day',S.night.day.trim(),{field:true});
-    add('Post fields','night_name',S.night.name.trim(),{field:true});
-    add('Post fields','night_time',S.night.time.trim(),{field:true});
-    add('Post fields','night_blurb',S.night.blurb.trim(),{field:true});
-    add('Post fields','night_link',S.night.link.trim(),{field:true});
-  }
+  add('Right column','Featured image alt text',S.alt.trim());
+  add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
+  add('Right column','Tags',S.tags.trim());
   return rows;
 }
 async function copyText(text,ta){
