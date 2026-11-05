@@ -145,22 +145,7 @@ details.card[open]>summary{margin-bottom:8px}
 .sheet .prose hr{border:0;border-top:3px solid var(--pd);margin:2em 0}
 ::highlight(bc-ph){background-color:#FFE66B;color:#1B1024}
 
-/* capsule card */
-.sheet .capsule{max-width:720px;margin:26px auto 0;border:3px solid var(--pd);background:var(--lav);box-shadow:6px 6px 0 var(--m);width:calc(100% - 56px)}
-.sheet .capsule .tag{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:0;padding:8px 18px;background:var(--pd);color:var(--l);font:800 11px/1.3 var(--head);letter-spacing:.16em;text-transform:uppercase}
-.sheet .capsule .tag input{flex:1 1 140px;min-width:0;background:transparent;border:0;border-bottom:1px dashed rgba(201,250,0,.6);color:var(--l);font:800 11px/1.3 var(--head);letter-spacing:.16em;text-transform:uppercase;padding:2px 0}
-.sheet .capsule .tag input::placeholder{color:rgba(201,250,0,.6)}
-.sheet .capsule .cbody{padding:16px 20px 6px;display:grid;gap:8px}
-.sheet .capsule input.ctitle{width:100%;border:0;border-bottom:1px dashed var(--rule);background:transparent;color:var(--pd);font:800 clamp(22px,3.2vw,27px)/1.15 var(--head);padding:2px 0}
-.sheet .capsule input.cmeta{width:100%;border:0;border-bottom:1px dashed var(--rule);background:transparent;color:var(--s);font:400 14px/1.5 var(--ui);padding:2px 0}
-.sheet .capsule textarea.cverdict{width:100%;border:1px dashed var(--rule);background:#fff;color:var(--n);font:700 17px/1.45 var(--body);padding:6px 8px;resize:none;overflow:hidden}
-.sheet .qa{margin:12px 0 0;padding:0 20px 8px;border-top:3px solid var(--pd);background:#fff}
-.sheet .qa .row{padding:12px 0;border-bottom:1px solid var(--rule);display:grid;grid-template-columns:170px minmax(0,1fr);gap:6px 18px;align-items:start}
-.sheet .qa .row:last-child{border-bottom:0}
-.sheet .qa label{margin:0;font:800 12px/1.3 var(--head);letter-spacing:.14em;text-transform:uppercase;color:var(--md);padding-top:6px}
-.sheet .qa textarea{width:100%;border:1px dashed var(--rule);background:#fff;color:var(--n);font:400 16px/1.5 var(--body);padding:5px 8px;resize:none;overflow:hidden}
-.sheet .qa textarea.long{border-color:var(--md)}
-.sheet .capsule textarea:focus,.sheet .capsule input:focus,.sheet .nightcard input:focus,.sheet .nightcard textarea:focus,.sheet .imgslot input:focus{outline:2px solid #FF0A8A;outline-offset:1px}
+.sheet .nightcard input:focus,.sheet .nightcard textarea:focus,.sheet .imgslot input:focus{outline:2px solid #FF0A8A;outline-offset:1px}
 
 /* named night */
 .sheet .nightwrap{max-width:720px;margin:6px auto 30px;width:calc(100% - 56px)}
@@ -211,9 +196,7 @@ details.card[open]>summary{margin-bottom:8px}
   .sheet .hero{padding:28px 18px 22px}
   .sheet .prose{padding:24px 18px 14px}
   .sheet .figure{padding:16px 18px 0}
-  .sheet .capsule,.sheet .nightwrap{width:calc(100% - 36px)}
-  .sheet .qa .row{grid-template-columns:1fr}
-  .sheet .qa label{padding-top:0}
+  .sheet .nightwrap{width:calc(100% - 36px)}
   .sheet .nightgrid{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -270,16 +253,6 @@ details.card[open]>summary{margin-bottom:8px}
               <label>Alt text <input type="text" data-f="alt" id="fAlt" placeholder="Describe the picture in a short sentence"></label>
             </div>
           </figure>
-
-          <section class="capsule" id="capsule" aria-label="Capsule review card" hidden>
-            <p class="tag"><span>Capsule review</span></p>
-            <div class="cbody">
-              <input class="ctitle" type="text" data-f="cap.title" aria-label="What is being reviewed" placeholder="What you are reviewing">
-              <input class="cmeta" type="text" data-f="cap.details" aria-label="Publisher, creators, format" placeholder="Publisher, creators, format">
-              <textarea class="cverdict" data-f="cap.verdict" rows="2" aria-label="Verdict" placeholder="The verdict in one plain line. No score."></textarea>
-            </div>
-            <div class="qa" id="qa"></div>
-          </section>
 
           <div class="prose" id="postBody" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Post body"></div>
 
@@ -341,7 +314,7 @@ details.card[open]>summary{margin-bottom:8px}
         <ul><li>the room, open tables, game night, the counter</li><li>pull list, back-issue run, learn to play, gateway game</li><li>staff picks, restock alert</li></ul>
         <p><b>Avoid</b></p>
         <ul><li>patrons, consumers, foot traffic, filthy casuals</li><li>huge savings, blowouts, lowest prices in town</li><li>sarcasm, snobbery, gatekeeping, mocking mainstream titles</li></ul>
-        <p class="hint" style="margin:0">One bat pun per piece, maximum. Write Bat City Games &amp; Comics in full, every time, and spell out Highway 290.</p>
+        <p class="hint" style="margin:0">One bat pun per piece, maximum. Write Bat City Games &amp; Comics in full, every time, and spell out Highway 290. The one exception is the byline, The Bat City Crew.</p>
       </details>
     </aside>
   </div>
@@ -679,24 +652,21 @@ details.card[open]>summary{margin-bottom:8px}
 const TYPES = {
   guide:  {label:'Guide',  tag:'Guides',  target:1000, lo:800, hi:1300, noPrices:true,
     blurb:'About 1,000 words. Turns a first visit into a second and ends at a named night. No prices, so it does not go stale.',
-    hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Jacob Clifton is the author, stated once. Set Shopify\'s own Author box to the same name.'},
+    hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
   short:  {label:'Short post', tag:'News', target:500, lo:350, hi:650,
     blurb:'About 500 words. A quick how-to, a restock alert, a roundup.',
-    hint:'About 500 words. Prices and promotions need Brendan\'s yes.', crew:true, byline:'Jacob Clifton is the author, stated once. Set Shopify\'s own Author box to the same name.'},
-  capsule:{label:'Capsule review', tag:'Reviews', min:100, hi:450, noPrices:true, noScores:true,
-    blurb:'A review with the eight set questions. A plain verdict, no scores, no prices, no spoilers past the first act. It carries no name.',
-    hint:'The reviewer picks what gets reviewed. No name goes on a review. 100 words or more, a plain verdict, no scores, no prices.', byline:'Reviews carry no name, so this stays empty. Shopify\'s own Author box still needs one (see Fields).'},
+    hint:'About 500 words. Prices and promotions need Brendan\'s yes.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
   staff:  {label:'Staff pick', tag:'Staff Picks', target:300, lo:120, hi:500,
     blurb:'A staff member\'s pick, in their words, or Jacob\'s with their okay. Short.',
     hint:'Written both ways: by the staff member, or by Jacob with their okay. Staff profiles and quotes need Brendan\'s yes.',
     byline:'By the staff member: put their name. By Jacob: put Jacob Clifton. Set Shopify\'s own Author box to the same name.'},
   news:   {label:'Release or event news', tag:'News', target:400, lo:150, hi:600,
     blurb:'What is coming and when. Event and prerelease details need Brendan\'s yes.',
-    hint:'Mark any date you have not confirmed as "date unconfirmed". Event and prerelease details need Brendan\'s yes.', crew:true, byline:'Jacob Clifton is the author, stated once. Set Shopify\'s own Author box to the same name.'}
+    hint:'Mark any date you have not confirmed as "date unconfirmed". Event and prerelease details need Brendan\'s yes.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'}
 };
-const TYPE_ORDER = ['guide','short','capsule','staff','news'];
-const AUTHOR = 'Jacob Clifton';                  // the author of guides, short posts and news, stated once (settled Nov 5)
-const OLD_CREW = 'Bat City Games & Comics Crew';  // the earlier default; drafts saved with it are moved to AUTHOR on load
+const TYPE_ORDER = ['guide','short','staff','news'];
+const CREW = 'The Bat City Crew';   // the default byline for guides, short posts and news (Jacob, Nov 5)
+const OLD_CREW = 'Bat City Games & Comics Crew';   // the earlier default; drafts saved with it are moved over on load
 
 const SCAFFOLD = {
 guide:
@@ -721,10 +691,6 @@ short:
 <h2>[Section heading, optional]</h2>
 <p>[Two short paragraphs. The detail someone would ask about at the counter.]</p>
 <p>[Close with the next step: a named night, a release date you have confirmed, or a pull list nudge.]</p>`,
-capsule:
-`<p>[Open with the verdict in plain words: what it is, who it is for, and whether you would hand it across the counter. No score.]</p>
-<p>[What it does well, in the reviewer's own voice. Stay inside the first act. No spoilers past it.]</p>
-<p>[One honest reservation, then what you would read or play next.]</p>`,
 staff:
 `<p>[Staff name] picks [title]. [One sentence on why it is on their personal shelf.]</p>
 <p>[In their own words: what hooked them, in two or three sentences. Keep their phrasing.]</p>
@@ -736,17 +702,6 @@ news:
 <p>[The details a regular would ask for: what it is, which night, what to bring. Event and prerelease details need Brendan's yes before this publishes.]</p>
 <p>[How to be ready: a pull list nudge, a named night, or a restock alert.]</p>`
 };
-
-const CAPQ = [
-  ['meets','This meets that','Two things, and what happens when they meet.'],
-  ['like','Read it if you like','A named book, show or game, ideally one we also stock. For a game, answer as "play it if you like".'],
-  ['required','Required reading','What you need to know first. "None" is a good answer.'],
-  ['where','Best place to read it','The oddly specific spot or situation it suits.'],
-  ['time','How long it takes','A real length, in an absurd but accurate unit.'],
-  ['skip','Skip it if','The honest warning.'],
-  ['gift','Gift it to','A person, described the way you would at the counter.'],
-  ['pull','Pull it or pass','Plain advice on starting a pull list for it, or not.']
-];
 
 const NIGHTS = [
   ['MON','Warhammer and Riftbound Nexus Night'],
@@ -760,12 +715,11 @@ const NIGHTS = [
   ['SUN','Bat City Magic Club'],
   ['SUN','Pokémon Open Play']
 ];
-const TAG_SUGGEST = ['Guides','Reviews','Staff Picks','News','Events','Pull List','New Releases'];
+const TAG_SUGGEST = ['Guides','Staff Picks','News','Events','Pull List','New Releases'];
 
 const CONFIRMS = {
   guide:  [['facts','Every title, date and quote is real and checked against a source I opened']],
   short:  [['facts','Every title, date and quote is real and checked against a source I opened (or marked "date unconfirmed")'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']],
-  capsule:[['read','The reviewer has read or played it'],['spoil','Nothing past the first act is given away'],['signed','The reviewer picked it, and no name is on it'],['facts','Every title and detail is real and checked against a source I opened']],
   staff:  [['okay','The staff member has OK\'d this, including any quote'],['staffyes','Brendan has said yes to the staff profile or quote'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']],
   news:   [['facts','Every date is confirmed against a publisher, distributor or organizer page (or marked "date unconfirmed")'],['event','Brendan has said yes to the event and prerelease details'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']]
 };
@@ -782,7 +736,7 @@ function shortDate(d){ return d.toLocaleDateString('en-US',{month:'short',day:'n
 function autosize(el){ el.style.height='auto'; el.style.height=(el.scrollHeight+2)+'px'; }
 
 /* ---------- state ---------- */
-let S = null;                 // the open post: {id,type,created,title,excerpt,tags,byline,alt,seoTitle,seoDesc,handle,cap:{},night:{},body,confirm:{},updatedAt}
+let S = null;                 // the open post: {id,type,created,title,excerpt,tags,byline,alt,seoTitle,seoDesc,handle,night:{},body,confirm:{},updatedAt}
 let index = [];               // [{id,name,type,updatedAt}]
 let db = null;
 let dirty = false, saveTimer = 0, syncTimer = 0, checkTimer = 0, phTimer = 0;
@@ -792,26 +746,27 @@ let ed = null;
 function blankDoc(type){
   const t = TYPES[type];
   return {
-    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? AUTHOR : '', alt:'', seoTitle:'', seoDesc:'', handle:'',
-    cap:{title:'',details:'',verdict:'',reviewer:'',meets:'',like:'',required:'',where:'',time:'',skip:'',gift:'',pull:''},
+    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'',
     night:{on:type==='guide', day:'', name:'', time:'6 to 10 PM', blurb:'', link:''},
     body:SCAFFOLD[type], confirm:{}, updatedAt:new Date().toISOString()
   };
 }
 function mergeDoc(d){
-  const b = blankDoc(TYPES[d.type] ? d.type : 'short');
+  // A draft saved as a capsule review (not a blog post any more) opens as a short post; its card answers are not carried over.
+  const type = TYPES[d.type] ? d.type : 'short';
+  const b = blankDoc(type);
   const o = Object.assign(b, d);
-  o.cap = Object.assign(b.cap, d.cap||{}); o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
+  o.type = type; delete o.cap;
+  o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
   o.body = typeof d.body === 'string' ? d.body : '';
-  if((o.byline||'').trim()===OLD_CREW) o.byline = TYPES[o.type].crew ? AUTHOR : '';   // the shop crew byline is retired
-  if(o.type==='capsule'){ o.byline=''; o.cap.reviewer=''; }                          // a review carries no name
+  if((o.byline||'').trim()===OLD_CREW) o.byline = TYPES[type].crew? CREW : '';   // the earlier default byline becomes the new one
   return o;
 }
 function stripDoc(s){ const o = Object.assign({}, s); delete o.id; return o; }
 function postName(s){ return (s.title||'').trim() || (TYPES[s.type].label+' draft, '+shortDate(new Date(s.created||Date.now()))); }
 const nightOn = () => !!S && (S.type==='guide' || !!S.night.on);
-// What readers see: the typed byline, else Jacob Clifton (guide, short post, news). A capsule review carries no name.
-function effByline(){ if(S.type==='capsule') return ''; const b=(S.byline||'').trim(); if(b) return b; return TYPES[S.type].crew? AUTHOR : ''; }
+// What readers see, and what the Author box in Shopify should say: the typed byline, else The Bat City Crew (guide, short post, news)
+function effByline(){ const b=(S.byline||'').trim(); if(b) return b; return TYPES[S.type].crew? CREW : ''; }
 
 /* ---------- body: clean HTML in, clean HTML out ---------- */
 const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','UL','OL','BLOCKQUOTE','HR','TABLE','SECTION','ARTICLE','FIGURE','PRE','HEADER','FOOTER']);
@@ -1063,7 +1018,6 @@ const R = {
   date:  new RegExp('\\b'+MONTH+'\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?\\b','g'),
   price: /\$\s?\d[\d,]*(?:\.\d{2})?|\b\d[\d,]*(?:\.\d{2})?\s*(?:dollars|bucks|USD)\b/gi,
   promo: /\b\d+\s?%\s?off\b|\bpercent off\b|\bsales?\b|\bdiscounts?\b|\bBOGO\b|\bcoupons?\b|\bpromo(?:tion)?s?\b|\bclearance\b/gi,
-  score: /\b\d+(?:\.\d)?\s*(?:\/|out of)\s*(?:5|10|100)\b|[★☆]|\b\d(?:\.\d)?\s*stars?\b|\b(?:one|two|three|four|five) stars?\b/gi,
   stock: /\b(ensure|leverage|delve|unlock)\b/gi,
   avoid: /\b(patrons?|consumers?|foot traffic|filthy casuals?|huge savings|blowouts?|lowest prices? in town)\b/gi,
   notIts:/\b(?:it'?s|it is|this is|that'?s|that is)\s+not\b[^.!?\n]{0,80}?[,;:]\s*(?:it'?s|it is|but)\b/i,
@@ -1077,7 +1031,6 @@ function quote(a,n){ return a.slice(0,n||2).map(x=>'"'+x+'"').join(', ')+(a.leng
 
 function allText(){
   const parts=[S.title,S.excerpt,S.byline,S.alt,S.seoTitle,S.seoDesc,textFromHtml(S.body)];
-  if(S.type==='capsule') parts.push(...Object.values(S.cap));
   if(nightOn()) parts.push(S.night.name,S.night.blurb);
   return parts.join(' \n ');
 }
@@ -1093,14 +1046,10 @@ function runChecks(){
   add(pc?'warn':'ok', pc? pc+' [prompt'+(pc===1?'':'s')+'] left to fill in or delete' : 'No [prompts] left');
 
   // length
-  if(T.min){
-    add(words>=T.min && words<=T.hi?'ok':'warn', 'Review is '+words+' words (100 or more'+(words>T.hi?', but this is long for a capsule':'')+')');
-  } else {
-    add(words>=T.lo && words<=T.hi?'ok':'warn', 'Post is '+words+' words (aim for about '+T.target.toLocaleString('en-US')+')');
-  }
+  add(words>=T.lo && words<=T.hi?'ok':'warn', 'Post is '+words+' words (aim for about '+T.target.toLocaleString('en-US')+')');
 
   // house rules
-  const bad=[]; { const re=/Bat City(?! Games\s*&\s*Comics| Magic Club)/g; let m; while((m=re.exec(text.replace(/&amp;/g,'&')))) bad.push(text.slice(Math.max(0,m.index-12),m.index+24).trim()); }
+  const bad=[]; { const re=/Bat City(?! Games\s*&\s*Comics| Magic Club| Crew)/g; let m; while((m=re.exec(text.replace(/&amp;/g,'&')))) bad.push(text.slice(Math.max(0,m.index-12),m.index+24).trim()); }
   add(bad.length?'warn':'ok', bad.length? 'Write Bat City Games & Comics in full: "'+bad[0]+'"'+(bad.length>1?' and '+(bad.length-1)+' more':'') : 'Shop name is written in full');
   if(R.hwy.test(text)) add('warn','Spell out Highway 290');
   const flags=[]; if(/—/.test(text)) flags.push('em dash'); const sw=hits(R.stock,text); if(sw.length) flags.push(quote(sw.map(x=>x.toLowerCase()),2)); if(R.notIts.test(text)) flags.push('"it\'s not X, it\'s Y"');
@@ -1113,7 +1062,7 @@ function runChecks(){
   // prices and promotions
   const pr=hits(R.price,text), pm=hits(R.promo,text);
   if(T.noPrices){
-    add(pr.length?'warn':'ok', pr.length? 'Take the price out: '+quote(pr,2)+'. '+(S.type==='guide'?'Guides carry no prices so they do not go stale.':'Reviews carry no prices.') : 'No prices');
+    add(pr.length?'warn':'ok', pr.length? 'Take the price out: '+quote(pr,2)+'. '+'Guides carry no prices so they do not go stale.' : 'No prices');
   }
   if((!T.noPrices && pr.length) || pm.length){
     const found=(T.noPrices?[]:pr).concat(pm);
@@ -1143,14 +1092,6 @@ function runChecks(){
   if(S.type==='guide'){
     add(S.night.name.trim()?'ok':'warn', S.night.name.trim()? 'Ends at a named night: '+S.night.name : 'A guide should end at a named night (card at the bottom of the post)');
   }
-  if(S.type==='capsule'){
-    add(S.cap.title.trim()?'ok':'warn', S.cap.title.trim()?'Card names what is reviewed':'Card needs what is being reviewed');
-    add(S.cap.verdict.trim()?'ok':'warn', S.cap.verdict.trim()?'Verdict is in':'Add the one-line verdict');
-    const answered=CAPQ.filter(q=>S.cap[q[0]].trim()).length;
-    add(answered?'ok':'warn', answered+' of 8 questions answered (six honest answers beat eight padded)');
-    const longQ=CAPQ.filter(q=>wordCount(S.cap[q[0]])>60).length; if(longQ) add('warn', longQ+' answer'+(longQ===1?' is':'s are')+' long. One or two sentences each.');
-    const sc=hits(R.score,text); add(sc.length?'warn':'ok', sc.length? 'No scores: '+quote(sc,2) : 'No scores');
-  }
   if(S.type==='staff') add(S.byline.trim()?'ok':'warn', S.byline.trim()? 'Signed by '+S.byline.trim() : 'Put the staff member\'s name in the byline (or Jacob Clifton if you wrote it)');
   if(S.type==='staff' && /<blockquote>/.test(S.body)) add('info','Staff quote: needs the staff member\'s okay and Brendan\'s yes');
 
@@ -1178,10 +1119,10 @@ function refresh(){
   if(!S) return;
   const words=wordCount(textFromHtml(S.body)), T=TYPES[S.type];
   $('#chipOut').textContent=firstTag()||'The Batcave';
-  const by=effByline() || (S.type==='capsule' ? '' : 'Author');
-  $('#bylineOut').textContent=[by, new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), Math.max(1,Math.ceil(words/200))+' min read'].filter(Boolean).join(' · ');
-  const goal = T.min? T.min+'+' : T.target.toLocaleString('en-US');
-  const good = T.min? (words>=T.min&&words<=T.hi) : (words>=T.lo&&words<=T.hi);
+  const by=effByline() || 'Author';
+  $('#bylineOut').textContent=by+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+Math.max(1,Math.ceil(words/200))+' min read';
+  const goal = T.target.toLocaleString('en-US');
+  const good = words>=T.lo&&words<=T.hi;
   $('#count').innerHTML='<b>'+words.toLocaleString('en-US')+'</b> words <span class="'+(good?'okc':'')+'">of about '+goal+'</span>';
   const st=S.seoTitle.trim().length, sd=S.seoDesc.trim().length;
   $('#cSeoTitle').textContent=st? st+' / 60' : ''; $('#cSeoTitle').classList.toggle('over',st>60);
@@ -1200,15 +1141,6 @@ function renderTop(){
     const o=document.createElement('option'); o.value=x.id; o.textContent=x.name||x.id; if(S&&x.id===S.id) o.selected=true; sel.appendChild(o);
   });
   $('#btnCopy').disabled=!S; $('#btnFields').disabled=!S; $('#btnDel').disabled=!S;
-}
-function buildQA(){
-  const qa=$('#qa'); qa.innerHTML='';
-  CAPQ.forEach(([k,label,hint])=>{
-    const row=document.createElement('div'); row.className='row';
-    const l=document.createElement('label'); l.textContent=label; l.setAttribute('for','cq-'+k);
-    const t=document.createElement('textarea'); t.id='cq-'+k; t.rows=2; t.setAttribute('data-f','cap.'+k); t.placeholder=hint;
-    row.appendChild(l); row.appendChild(t); qa.appendChild(row);
-  });
 }
 function buildTypeSelect(){
   const sel=$('#fType'); sel.innerHTML='';
@@ -1256,12 +1188,9 @@ function buildTagChips(){
 }
 function applyType(){
   const T=TYPES[S.type];
-  $('#capsule').hidden = S.type!=='capsule';
   $('#typeHint').textContent=T.hint;
   $('#bylineHint').textContent=T.byline;
   $('#bylineHint').hidden=!T.byline;
-  $('#fByline').disabled = S.type==='capsule';
-  $('#fByline').placeholder = S.type==='capsule' ? 'Reviews carry no name' : 'Who signs this post';
   const on=nightOn();
   $('#nightCard').hidden=!on; $('#addNight').hidden=on;
   $('#rmNight').hidden = S.type==='guide';
@@ -1322,7 +1251,6 @@ async function deletePost(){
 // The metafields, top to bottom, in the order Shopify's blog post page lists them (read off the live page, Nov 5).
 // Shopify shows all 18 on every post; the list below only lists the ones this kind of post uses.
 const META_ORDER = ['night_link','night_blurb','night_time','night_name','night_day',
-  'cap_pull','cap_gift','cap_skip','cap_time','cap_where','cap_required','cap_like','cap_meets','cap_reviewer','cap_verdict','cap_details','cap_title',
   'byline'];
 // Rows run in the order of Shopify's page: left column (Title, Content, Excerpt, Metafields, Search engine listing), then the right column.
 function shopifyRows(){
@@ -1332,12 +1260,6 @@ function shopifyRows(){
   add('Content: press the <> button in the editor, then paste','Body (HTML)',S.body,{mono:true,always:true});
   add('Excerpt','Excerpt',S.excerpt.trim());
   const meta={ byline:effByline() };
-  if(S.type==='capsule'){
-    meta.cap_title=S.cap.title.trim();
-    meta.cap_details=S.cap.details.trim();
-    meta.cap_verdict=S.cap.verdict.trim();
-    CAPQ.forEach(([k])=>{ meta['cap_'+k]=S.cap[k].trim(); });
-  }
   if(nightOn()){
     meta.night_day=S.night.day.trim();
     meta.night_name=S.night.name.trim();
@@ -1350,8 +1272,7 @@ function shopifyRows(){
   add('Search engine listing','Meta description',S.seoDesc.trim());
   add('Search engine listing','URL handle',(S.handle.trim()||suggestHandle()));
   add('Right column','Featured image alt text',S.alt.trim());
-  if(S.type==='capsule') add('Right column','Author (Shopify needs an author: Jacob Clifton. No name shows on a review, because the byline field stays empty)',AUTHOR);
-  else add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
+  add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
   add('Right column','Tags',S.tags.trim());
   return rows;
 }
@@ -1368,7 +1289,7 @@ function openFields(bodyCopied){
   else if(bodyCopied===false) html+='<div class="status warn">The browser would not copy here. Click the Body box below, press Ctrl or Cmd A, then Ctrl or Cmd C.</div>';
   if(checks.length) html+='<div><h3>Still open ('+checks.length+')</h3><ul class="checks" style="margin-top:6px">'+pills(checks)+'</ul></div>';
   else html+='<div class="status ok">Every check is clear.</div>';
-  html+='<p class="dim" style="margin:0">'+(S.type==='capsule' ? 'A review carries no name, so the byline field stays empty. Shopify still needs an author in its own Author box: set it to Jacob Clifton. ' : 'The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. ')+'In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft: Brendan approves it.</p>';
+  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft: Brendan approves it.</p>';
   let lastWhere='';
   rows.forEach((r,i)=>{
     const empty=!r.value && !r.always;
@@ -1404,10 +1325,10 @@ function openChooser(){
 function wire(){
   ed=$('#postBody');
   try{ document.execCommand('defaultParagraphSeparator',false,'p'); }catch(e){}
-  buildQA(); buildTypeSelect(); buildTagChips();
+  buildTypeSelect(); buildTagChips();
 
   // one-line fields: no line breaks, even when pasted (these go into Shopify single-line fields)
-  document.querySelectorAll('#fTitle,#fExcerpt,#fSeoDesc,.cverdict,.qa textarea,[data-f="night.blurb"]').forEach(el=>{
+  document.querySelectorAll('#fTitle,#fExcerpt,#fSeoDesc,[data-f="night.blurb"]').forEach(el=>{
     el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); } });
     el.addEventListener('input',()=>{ if(/[\r\n]/.test(el.value)) el.value=el.value.replace(/\s*[\r\n]+\s*/g,' '); });
   });
@@ -1426,8 +1347,8 @@ function wire(){
     const old=TYPES[S.type], nu=TYPES[e.target.value];
     if(S.tags.trim()===old.tag) { S.tags=nu.tag; $('#fTags').value=S.tags; }
     S.type=e.target.value; if(S.type==='guide') S.night.on=true;
-    if(S.type==='capsule' || (!nu.crew && S.byline.trim()===AUTHOR)) S.byline='';   // a review carries no name, and a staff pick names its own writer
-    else if(nu.crew && !S.byline.trim()) S.byline=AUTHOR;
+    if(!nu.crew && S.byline.trim()===CREW) S.byline='';          // the crew byline does not follow a staff pick
+    else if(nu.crew && !S.byline.trim()) S.byline=CREW;
     $('#fByline').value=S.byline;
     applyType(); scheduleSave(); refresh();
   };
