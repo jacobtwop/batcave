@@ -754,11 +754,11 @@ const NIGHTS = [
   ['THU','Sorcery Night'],
   ['FRI','Star Wars: Unlimited Night'],
   ['FRI','Flesh and Blood Night'],
-  ['FRI','Lonely Board Game Night'],
+  ['FRI','Open Seat Board Game Night'],
   ['SAT','Board Games Night'],
   ['SUN','FOC Sunday'],
-  ['SUN','Kids Magic Club'],
-  ['SUN','Pokémon Free Play']
+  ['SUN','Bat City Magic Club'],
+  ['SUN','Pokémon Open Play']
 ];
 const TAG_SUGGEST = ['Guides','Reviews','Staff Picks','News','Events','Pull List','New Releases'];
 
@@ -1068,7 +1068,7 @@ const R = {
   hwy:   /\b(?:Hwy\.?|Hiway|US|U\.S\.)[ -]?290\b/,
   haven: /\b(reserve your seat|check[- ]?in|rsvp|tickets?)\b/gi,
   bat:   /\b(bats?|batty|belfry|guano|echolocat\w*|nocturnal|caped|batarang|bat-?signal)\b/gi,
-  minors:/kids magic club|youth league|summer camp|ages? \d+ to \d+/i
+  minors:/(?:kids|bat city) magic club|youth league|summer camp|ages? \d+ to \d+/i
 };
 function hits(re,text){ const m=text.match(re); return m? Array.from(new Set(m.map(x=>x.trim()))) : []; }
 function quote(a,n){ return a.slice(0,n||2).map(x=>'"'+x+'"').join(', ')+(a.length>(n||2)?' and '+(a.length-(n||2))+' more':''); }
@@ -1098,7 +1098,7 @@ function runChecks(){
   }
 
   // house rules
-  const bad=[]; { const re=/Bat City(?! Games\s*&\s*Comics)/g; let m; while((m=re.exec(text.replace(/&amp;/g,'&')))) bad.push(text.slice(Math.max(0,m.index-12),m.index+24).trim()); }
+  const bad=[]; { const re=/Bat City(?! Games\s*&\s*Comics| Magic Club)/g; let m; while((m=re.exec(text.replace(/&amp;/g,'&')))) bad.push(text.slice(Math.max(0,m.index-12),m.index+24).trim()); }
   add(bad.length?'warn':'ok', bad.length? 'Write Bat City Games & Comics in full: "'+bad[0]+'"'+(bad.length>1?' and '+(bad.length-1)+' more':'') : 'Shop name is written in full');
   if(R.hwy.test(text)) add('warn','Spell out Highway 290');
   const flags=[]; if(/—/.test(text)) flags.push('em dash'); const sw=hits(R.stock,text); if(sw.length) flags.push(quote(sw.map(x=>x.toLowerCase()),2)); if(R.notIts.test(text)) flags.push('"it\'s not X, it\'s Y"');
