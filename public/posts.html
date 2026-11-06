@@ -305,7 +305,7 @@ details.card[open]>summary{margin-bottom:8px}
       <div class="card">
         <h2>Confirm by hand</h2>
         <div id="confirms"></div>
-        <p class="hint" style="margin:6px 0 0">Brendan sees every draft in Shopify. His window closes Tuesday at noon. Silence counts as a yes only for what is not prices, promotions, sale dates, prerelease or event details, or staff profiles and quotes.</p>
+        <p class="hint" style="margin:6px 0 0">Brendan can read any draft in Shopify and comment. Ask him first only when you are not comfortable with something.</p>
       </div>
       <details class="card voice">
         <summary>House voice</summary>
@@ -655,14 +655,14 @@ const TYPES = {
     hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
   short:  {label:'Short post', tag:'News', target:500, lo:350, hi:650,
     blurb:'About 500 words. A quick how-to, a restock alert, a roundup.',
-    hint:'About 500 words. Prices and promotions need Brendan\'s yes.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
+    hint:'About 500 words.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
   staff:  {label:'Staff pick', tag:'Staff Picks', target:300, lo:120, hi:500,
     blurb:'A staff member\'s pick, in their words, or Jacob\'s with their okay. Short.',
-    hint:'Written both ways: by the staff member, or by Jacob with their okay. Staff profiles and quotes need Brendan\'s yes.',
+    hint:'Written both ways: by the staff member, or by Jacob with their okay. A quote needs the staff member\'s okay.',
     byline:'By the staff member: put their name. By Jacob: put Jacob Clifton. Set Shopify\'s own Author box to the same name.'},
   news:   {label:'Release or event news', tag:'News', target:400, lo:150, hi:600,
-    blurb:'What is coming and when. Event and prerelease details need Brendan\'s yes.',
-    hint:'Mark any date you have not confirmed as "date unconfirmed". Event and prerelease details need Brendan\'s yes.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'}
+    blurb:'What is coming and when.',
+    hint:'Mark any date you have not confirmed as "date unconfirmed".', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'}
 };
 const TYPE_ORDER = ['guide','short','staff','news'];
 const CREW = 'The Bat City Crew';   // the default byline for guides, short posts and news (Jacob, Nov 5)
@@ -694,12 +694,12 @@ short:
 staff:
 `<p>[Staff name] picks [title]. [One sentence on why it is on their personal shelf.]</p>
 <p>[In their own words: what hooked them, in two or three sentences. Keep their phrasing.]</p>
-<blockquote><p>[A line they said, exactly as they said it. Needs their okay and Brendan's yes.]</p></blockquote>
+<blockquote><p>[A line they said, exactly as they said it. Needs their okay.]</p></blockquote>
 <p>[Who to hand it to, and where it sits in the shop.]</p>`,
 news:
 `<p>[Lede. What is happening, and when. If a date is not confirmed, say "date unconfirmed".]</p>
 <h2>[What to expect at the shop]</h2>
-<p>[The details a regular would ask for: what it is, which night, what to bring. Event and prerelease details need Brendan's yes before this publishes.]</p>
+<p>[The details a regular would ask for: what it is, which night, what to bring.]</p>
 <p>[How to be ready: a pull list nudge, a named night, or a restock alert.]</p>`
 };
 
@@ -719,9 +719,9 @@ const TAG_SUGGEST = ['Guides','Staff Picks','News','Events','Pull List','New Rel
 
 const CONFIRMS = {
   guide:  [['facts','Every title, date and quote is real and checked against a source I opened']],
-  short:  [['facts','Every title, date and quote is real and checked against a source I opened (or marked "date unconfirmed")'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']],
-  staff:  [['okay','The staff member has OK\'d this, including any quote'],['staffyes','Brendan has said yes to the staff profile or quote'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']],
-  news:   [['facts','Every date is confirmed against a publisher, distributor or organizer page (or marked "date unconfirmed")'],['event','Brendan has said yes to the event and prerelease details'],['price','Brendan has said yes to any price, promotion or sale date (or there are none)']]
+  short:  [['facts','Every title, date and quote is real and checked against a source I opened (or marked "date unconfirmed")']],
+  staff:  [['okay','The staff member has OK\'d this, including any quote']],
+  news:   [['facts','Every date is confirmed against a publisher, distributor or organizer page (or marked "date unconfirmed")']]
 };
 
 /* ---------- helpers ---------- */
@@ -1066,13 +1066,13 @@ function runChecks(){
   }
   if((!T.noPrices && pr.length) || pm.length){
     const found=(T.noPrices?[]:pr).concat(pm);
-    add(ok('price')?'ok':'warn', 'Price or promotion in the text ('+quote(found,2)+'): needs Brendan\'s yes');
+    add('info', 'Price or promotion in the text ('+quote(found,2)+'): make sure it is a number or date the shop has given you');
   }
 
   // dates
   const dt=hits(R.date,text);
   if(dt.length){
-    const dateOk = ok('facts')||ok('event');
+    const dateOk = ok('facts');
     add(dateOk?'ok':'warn','Dates in the post ('+quote(dt,3)+'): confirm each against a publisher, distributor or organizer page, or write "date unconfirmed"');
   }
   // things that must stay out
@@ -1093,7 +1093,7 @@ function runChecks(){
     add(S.night.name.trim()?'ok':'warn', S.night.name.trim()? 'Ends at a named night: '+S.night.name : 'A guide should end at a named night (card at the bottom of the post)');
   }
   if(S.type==='staff') add(S.byline.trim()?'ok':'warn', S.byline.trim()? 'Signed by '+S.byline.trim() : 'Put the staff member\'s name in the byline (or Jacob Clifton if you wrote it)');
-  if(S.type==='staff' && /<blockquote>/.test(S.body)) add('info','Staff quote: needs the staff member\'s okay and Brendan\'s yes');
+  if(S.type==='staff' && /<blockquote>/.test(S.body)) add('info','Staff quote: needs the staff member\'s okay');
 
   // search listing
   if(!S.seoTitle.trim() && S.title.trim().length>60) add('warn','Title is '+S.title.trim().length+' characters. Search results cut off near 60. Add a shorter page title.');
@@ -1102,7 +1102,7 @@ function runChecks(){
   if(!S.seoDesc.trim()) add('info','No meta description yet. Shopify will pick one from the post.');
 
   // hand confirmations
-  (CONFIRMS[S.type]||[]).forEach(([k,label])=>{ if(!ok(k) && !(k==='price')) add('warn','Not yet confirmed: '+label); });
+  (CONFIRMS[S.type]||[]).forEach(([k,label])=>{ if(!ok(k)) add('warn','Not yet confirmed: '+label); });
   add('info','Photos favor cards, boards, miniatures, components and hands in play. Nothing is invented: titles, dates, prices and quotes are real.');
   return out;
 }
@@ -1289,7 +1289,7 @@ function openFields(bodyCopied){
   else if(bodyCopied===false) html+='<div class="status warn">The browser would not copy here. Click the Body box below, press Ctrl or Cmd A, then Ctrl or Cmd C.</div>';
   if(checks.length) html+='<div><h3>Still open ('+checks.length+')</h3><ul class="checks" style="margin-top:6px">'+pills(checks)+'</ul></div>';
   else html+='<div class="status ok">Every check is clear.</div>';
-  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft: Brendan approves it.</p>';
+  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft. Brendan can read it in Shopify and comment.</p>';
   let lastWhere='';
   rows.forEach((r,i)=>{
     const empty=!r.value && !r.always;
