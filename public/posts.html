@@ -164,7 +164,7 @@ details.card[open]>summary{margin-bottom:8px}
 .sheet .nightbody input.nname{font:800 clamp(20px,2.8vw,26px)/1.15 var(--head);color:var(--pd);border-style:none none dashed none;background:transparent}
 .sheet .nightbody textarea{font:400 16px/1.5 var(--body);resize:none;overflow:hidden}
 .sheet .nightbody input.nlink{font:400 13px/1.4 var(--ui)}
-.sheet .nightpick{border:1px solid var(--rule);border-radius:4px;background:#fff;color:var(--n);padding:5px 8px;font:600 13px/1.3 var(--ui)}
+.sheet .nightpick{width:100%;border:1px solid var(--rule);border-radius:4px;background:#fff;color:var(--n);padding:5px 8px;font:600 13px/1.3 var(--ui)}
 
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-weight:700;font-size:13px;box-shadow:var(--shadow);z-index:60;max-width:calc(100% - 32px)}
 .scrim{position:fixed;inset:0;background:rgba(18,10,26,.55);display:grid;place-items:center;padding:16px;z-index:50}
@@ -269,7 +269,7 @@ details.card[open]>summary{margin-bottom:8px}
                   <select class="nightpick" id="nightPick" aria-label="Pick a weekly night"></select>
                   <input class="nname" type="text" data-f="night.name" aria-label="Night name" placeholder="Night name">
                   <textarea data-f="night.blurb" rows="2" aria-label="One or two sentences" placeholder="One or two sentences about why this post ends at this night."></textarea>
-                  <input class="nlink" type="text" data-f="night.link" aria-label="Button link" placeholder="Button link, for example /pages/events (optional)">
+                  <input class="nlink" type="text" data-f="night.link" aria-label="Button link" placeholder="Button link (the night you pick fills this in)">
                 </div>
               </div>
             </section>
@@ -704,17 +704,20 @@ news:
 };
 
 const NIGHTS = [
-  ['MON','Warhammer and Riftbound Nexus Night'],
-  ['TUE','Role Playing Night'],
-  ['WED','Commander Night'],
-  ['THU','Sorcery Night'],
-  ['FRI','Star Wars: Unlimited Night'],
-  ['FRI','Flesh and Blood Night'],
-  ['FRI','Open Seat Board Game Night'],
-  ['SAT','Board Games Night'],
-  ['SUN','Bat City Magic Club'],
-  ['SUN','Pokémon Open Play']
+  {day:'MON', name:'Warhammer Night',                  time:'6 to 10 PM',  link:'https://batcitygc.com/pages/warhammer-night'},
+  {day:'MON', name:'Riftbound Nexus Night',            time:'6 to 10 PM',  link:'https://batcitygc.com/pages/riftbound-nexus-night'},
+  {day:'TUE', name:'Role Playing Night',               time:'6 to 10 PM',  link:'https://batcitygc.com/pages/role-playing-night'},
+  {day:'WED', name:'New Comics Day',                   time:'10 AM to 10 PM', link:'https://batcitygc.com/blogs/batcave/wednesday-at-the-shop'},
+  {day:'WED', name:'Commander Night',                  time:'6 to 10 PM',  link:'https://batcitygc.com/pages/commander-night'},
+  {day:'THU', name:'Sorcery Night',                    time:'6 to 10 PM',  link:'https://batcitygc.com/pages/sorcery-night'},
+  {day:'FRI', name:'Star Wars: Unlimited Night',       time:'6 to 10 PM',  link:'https://batcitygc.com/pages/star-wars-unlimited-night'},
+  {day:'FRI', name:'Flesh and Blood Night',            time:'6 to 10 PM',  link:'https://batcitygc.com/pages/flesh-and-blood-night'},
+  {day:'FRI', name:'Open Seat Board Game Night',       time:'6 to 10 PM',  link:'https://batcitygc.com/pages/open-seat-board-games-night'},
+  {day:'SAT', name:'Board Games Night',                time:'6 to 10 PM',  link:'https://batcitygc.com/pages/board-games-night'},
+  {day:'SUN', name:'Bat City Magic Club',              time:'10 AM to 2 PM', link:'https://batcitygc.com/pages/bat-city-magic-club-ages-8-16'},
+  {day:'SUN', name:'Pokémon Open Play',                time:'2 to 4 PM',   link:'https://batcitygc.com/pages/pokemon-open-play'}
 ];
+const NIGHT_DAYS = {MON:'Monday',TUE:'Tuesday',WED:'Wednesday',THU:'Thursday',FRI:'Friday',SAT:'Saturday',SUN:'Sunday'};
 const TAG_SUGGEST = ['Guides','Staff Picks','News','Events','Pull List','New Releases'];
 
 const CONFIRMS = {
@@ -747,7 +750,7 @@ function blankDoc(type){
   const t = TYPES[type];
   return {
     type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'',
-    night:{on:type==='guide', day:'', name:'', time:'6 to 10 PM', blurb:'', link:''},
+    night:{on:type==='guide', day:'', name:'', time:'', blurb:'', link:''},
     body:SCAFFOLD[type], confirm:{}, updatedAt:new Date().toISOString()
   };
 }
@@ -1147,7 +1150,12 @@ function buildTypeSelect(){
   TYPE_ORDER.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=TYPES[k].label; sel.appendChild(o); });
   const np=$('#nightPick'); np.innerHTML='';
   const first=document.createElement('option'); first.value=''; first.textContent='Pick a weekly night to fill the card'; np.appendChild(first);
-  NIGHTS.forEach(([d,n],i)=>{ const o=document.createElement('option'); o.value=String(i); o.textContent=d+'  '+n; np.appendChild(o); });
+  let grp=null, lastDay='';
+  NIGHTS.forEach((n,i)=>{
+    if(n.day!==lastDay){ grp=document.createElement('optgroup'); grp.label=NIGHT_DAYS[n.day]; np.appendChild(grp); lastDay=n.day; }
+    const o=document.createElement('option'); o.value=String(i); o.textContent=n.name+'  \u00b7  '+n.time; grp.appendChild(o);
+  });
+  const cu=document.createElement('option'); cu.value='custom'; cu.textContent='Something else (type it below)'; np.appendChild(cu);
 }
 function typeButtons(into,onPick){
   into.innerHTML='';
@@ -1164,9 +1172,17 @@ function showEmpty(){
   typeButtons($('#emptyTypes'),k=>newPost(k));
   renderTop();
 }
+function syncNightPick(){
+  const np=$('#nightPick'); if(!np||!S) return;
+  const nm=(S.night.name||'').trim();
+  let v='';
+  if(nm){ const i=NIGHTS.findIndex(n=>n.name===nm); v=i>=0?String(i):'custom'; }
+  np.value=v;
+}
 function fillInputs(){
   document.querySelectorAll('[data-f]').forEach(el=>{ const v=getP(S,el.getAttribute('data-f')); el.value = v==null? '' : v; if(el.tagName==='TEXTAREA') autosize(el); });
   $('#fType').value=S.type;
+  syncNightPick();
 }
 function buildConfirms(){
   const box=$('#confirms'); box.innerHTML='';
@@ -1339,6 +1355,7 @@ function wire(){
       if(!S) return;
       setP(S,el.getAttribute('data-f'),el.value);
       if(el.tagName==='TEXTAREA') autosize(el);
+      if(el.getAttribute('data-f')==='night.name') syncNightPick();
       scheduleSave(); scheduleRefresh();
     });
   });
@@ -1353,9 +1370,12 @@ function wire(){
     applyType(); scheduleSave(); refresh();
   };
   $('#nightPick').onchange=e=>{
-    if(!S||e.target.value==='') return;
-    const [d,n]=NIGHTS[+e.target.value]; S.night.day=d; S.night.name=n; if(!S.night.time.trim()) S.night.time='6 to 10 PM';
-    fillInputs(); e.target.value=''; scheduleSave(); refresh();
+    if(!S) return;
+    const v=e.target.value;
+    if(v===''){ syncNightPick(); return; }
+    if(v==='custom'){ const nm=document.querySelector('[data-f="night.name"]'); if(nm) nm.focus(); return; }
+    const n=NIGHTS[+v]; S.night.day=n.day; S.night.name=n.name; S.night.time=n.time; S.night.link=n.link;
+    fillInputs(); scheduleSave(); refresh();
   };
   $('#addNight').onclick=()=>{ S.night.on=true; applyType(); scheduleSave(); refresh(); };
   $('#rmNight').onclick=()=>{ S.night.on=false; applyType(); scheduleSave(); refresh(); };
