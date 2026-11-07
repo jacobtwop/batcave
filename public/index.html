@@ -52,8 +52,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn.ghost{background:transparent}
 .btn.danger{color:var(--stop);border-color:var(--stop)}
 .btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
-input[type=text],input[type=url],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;min-width:0}
-input[type=text]:focus,input[type=url]:focus,select:focus{border-color:var(--accent)}
+input[type=text],input[type=url],input[type=date],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;min-width:0}
+input[type=text]:focus,input[type=url]:focus,input[type=date]:focus,select:focus{border-color:var(--accent)}
 label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
 
 .main{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:14px;min-height:0}
@@ -129,6 +129,27 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
   .frameWrap{height:72vh;flex:none}
   .savestate{text-align:left}
 }
+
+/* source ledger */
+.modal.wide{width:min(860px,100%)}
+.lghead{position:sticky;top:-16px;z-index:2;background:var(--panel);padding:2px 0 8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
+.lg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lgrow{border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lgrow[data-state="sourced"],.lgrow[data-state="skip"]{opacity:.82}
+.lgtop{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.lgblk{font:800 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lgkind{font-size:12px;color:var(--muted)}
+.lglabel{font-size:13px}
+.lgctx{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.lgctx mark{background:var(--lime);color:var(--lime-ink);padding:0 3px;border-radius:3px;font-weight:700}
+.lgnote{margin:0}
+.lgctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lgctl .lgsrc{flex:1 1 260px}
+.lggroup>details>summary{padding:4px 0}
+.lgbh{display:flex;flex-direction:column;gap:6px;padding:6px 0 0}
+.lgbt{font-size:14px}
+.lgbulk{display:flex;flex-wrap:wrap;gap:6px}
+.lgbulk .lgbulksrc{flex:1 1 300px}
 @media (prefers-reduced-motion:reduce){.sw i,.sw i::after,#frame{transition:none}}
 </style></head><body>
 
@@ -184,6 +205,7 @@ label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-trans
       <div class="card">
         <h2>Before you send</h2>
         <ul class="checks" id="checks"></ul>
+        <div class="mrow" style="margin-top:10px"><button class="btn sm" id="btnSources" type="button" disabled>Sources</button></div>
       </div>
       <div class="card">
         <h2>Set once</h2>
@@ -690,7 +712,7 @@ function render(opts){
 function showEmpty(){
   $('#empty').hidden=false; $('#frameWrap').hidden=true; $('#bar').hidden=true; $('#ctx').hidden=true;
   $('#blocks').innerHTML=''; $('#checks').innerHTML=''; $('#count').textContent='';
-  $('#btnCopy').disabled=true; $('#btnDownload').disabled=true;
+  $('#btnCopy').disabled=true; $('#btnDownload').disabled=true; $('#btnSources').disabled=true;
 }
 function blockOf(u){ return S.blocks.find(b=>b.uid===u); }
 
@@ -1037,6 +1059,7 @@ function runChecks(){
   out.push(bad.length?['warn','Write Bat City Games & Comics in full: "'+bad[0]+'"'+(bad.length>1?' and '+(bad.length-1)+' more':'')]:['ok','Shop name is written in full']);
   const flags=[]; if(/—/.test(text)) flags.push('em dash'); const w=text.match(/\b(ensure|leverage|delve|unlock)\b/gi); if(w) flags.push('"'+w[0].toLowerCase()+'"');
   out.push(flags.length?['warn','Voice check: '+flags.join(', ')]:['ok','No em dashes or stock words']);
+  out.push(lgCheckLine());
   const size=new Blob([exportText(true)]).size;
   out.push(size>500*1024?['stop','Email is '+Math.round(size/1024)+' KB. Shopify allows 500 KB.']:size>100*1024?['warn','Email is '+Math.round(size/1024)+' KB. Gmail clips over about 100 KB.']:['ok','Email size '+Math.round(size/1024)+' KB']);
   out.push(['info','Prices and prizes: use what the shop, a calendar or Brendan has posted officially, and note the source. The issue goes to Brendan by noon Wednesday.']);
@@ -1047,6 +1070,7 @@ function renderChecks(){
   const ul=$('#checks'); ul.innerHTML='';
   runChecks().forEach(([lv,tx])=>{ const li=document.createElement('li'); li.innerHTML='<span class="pill '+lv+'">'+({ok:'OK',warn:'Check',stop:'Stop',info:'Note'})[lv]+'</span><span>'+esc(tx)+'</span>'; ul.appendChild(li); });
   const n=promptCount(); $('#count').innerHTML=n?'<b>'+n+'</b> prompts left':'No prompts left';
+  const sb=$('#btnSources'); if(sb){ sb.disabled=false; sb.textContent=lgLast.total?('Sources ('+(lgLast.need?lgLast.need+' to do':'all set')+')'):'Sources'; }
 }
 function refreshAll(){ if(S){ renderChecks(); } }
 
@@ -1120,7 +1144,7 @@ async function save(){
   S.updatedAt=new Date().toISOString();
   dirty=false;
   const id=S.id, name=S.name, updatedAt=S.updatedAt;   // captured now: S can move to another issue while the writes are in flight
-  const doc={name,blocks:stripBlocks(),updatedAt};
+  const doc={name,blocks:stripBlocks(),updatedAt,ledger:Object.assign({},S.ledger||{})};
   const slot=index.find(x=>x.id===id); if(slot){ slot.name=name; slot.updatedAt=updatedAt; } else index.push({id,name,updatedAt});
   try{
     if(db){
@@ -1165,7 +1189,7 @@ function backfill(issue){
 function newIssue(){
   const thu=nextThursday();
   const d=thu.getFullYear()+String(thu.getMonth()+1).padStart(2,'0')+String(thu.getDate()).padStart(2,'0');
-  S={id:'i-'+d+'-'+uid().slice(0,3),name:shortDate(thu)+' issue',blocks:freshBlocks(thu),updatedAt:new Date().toISOString()};
+  S={id:'i-'+d+'-'+uid().slice(0,3),name:shortDate(thu)+' issue',blocks:freshBlocks(thu),updatedAt:new Date().toISOString(),ledger:{}};
   undoStack=[]; $('#btnUndo').disabled=true; fdoc=null;
   index.push({id:S.id,name:S.name,updatedAt:S.updatedAt});
   render({scroll:false}); scheduleSave();
@@ -1175,7 +1199,7 @@ async function openIssue(id){
     if(db){
       const snap=await db.doc('issues/'+id).get();
       if(!snap.exists){ toast('That issue could not be found'); return; }
-      const d=snap.data(); S={id,name:d.name||id,blocks:d.blocks.map(b=>({uid:b.uid,num:b.num,on:b.on,html:b.html})),updatedAt:d.updatedAt};
+      const d=snap.data(); S={id,name:d.name||id,blocks:d.blocks.map(b=>({uid:b.uid,num:b.num,on:b.on,html:b.html})),updatedAt:d.updatedAt,ledger:(d.ledger&&typeof d.ledger==='object')?d.ledger:{}};
     }
   }catch(e){ toast('Could not open that issue'); return; }
   undoStack=[]; $('#btnUndo').disabled=true; fdoc=null; dirty=false;
@@ -1190,6 +1214,309 @@ async function deleteIssue(){
   toast('Issue deleted');
 }
 
+/* ---------- source ledger ---------- */
+// Finds every price, prize, promo and month-dated item in the blocks that are switched on, and keeps a note of where each one came from.
+// The notes live in the saved issue (S.ledger) and in a shared memory (settings/sources) so next week's issue can carry them over for a recheck.
+// Nothing here is ever written into the email.
+let sources = {};             // key -> {status,source,checked,at,issue}: the last answer given for that claim, from any issue
+let srcGone = new Set();      // keys cleared since the memory was last written
+let srcTimer = 0;
+let lgLast = {total:0,need:0};
+let lgRowsAtOpen = [];
+const LG_SKIP = new Set(['01','02','16']);   // header, date bar and footer hold no claims
+const LG_NEED = new Set(['new','carried','unconfirmed']);
+const LG_EDGE = new Set(['TD','TH','TR','TABLE','TBODY','THEAD','TFOOT','P','LI','UL','OL','H1','H2','H3','H4','H5','H6','DIV','BR','BLOCKQUOTE','SECTION','CENTER']);
+const LG_MONTH = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sept?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+const LG_PATTERNS = [
+  ['Price', /\$\s?\d[\d,]*(?:\.\d+)?/g],
+  ['Price', /\b\d+(?:\.\d\d)?\s?(?:dollars|bucks)\b/gi],
+  ['Promo', /\b\d{1,3}\s?(?:%|percent)(?:\s+off)?/gi],
+  ['Promo', /\b(?:free|sale|discount(?:s|ed)?|coupons?|clearance|bogo|giveaways?|raffles?|bundles?)\b/gi],
+  ['Prize', /\b(?:(?:a|an|one|two|three|four|five|six|\d+)\s+(?:booster\s+|sealed\s+)?packs?\s+(?:for|per|to|each)(?:\s+[\w'-]+){1,4}|promos?|play\s?mats?|prizes?|prize\s+support|top\s?(?:4|8|16|32|four|eight|sixteen|cut)|gift\s+cards?|store\s+credit|trophy|trophies)\b/gi],
+  ['Date', /\b(?:mon|tue|wed|thu|fri|sat|sun)\s+\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/gi],
+  ['Date', new RegExp('\\b'+LG_MONTH+'\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?(?:\\s?(?:to|through|thru|and|-|\\u2013)\\s?\\d{1,2}(?:st|nd|rd|th)?)?\\b','g')]
+];
+const LG_PILL = {new:['warn','Needs a source'],carried:['warn','Carried over, recheck'],unconfirmed:['warn','Unconfirmed'],sourced:['ok','Sourced'],skip:['info','Not a claim']};
+
+function lgToday(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function lgFmt(iso){ if(!/^\d{4}-\d\d-\d\d$/.test(iso||'')) return ''; const p=iso.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function lgKey(s){
+  s=s.toLowerCase().replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/\s+/g,' ').trim();
+  let a=5381,b=52711;
+  for(let i=0;i<s.length;i++){ const c=s.charCodeAt(i); a=((a<<5)+a+c)|0; b=(((b<<5)+b)^c)|0; }
+  return 'k'+(a>>>0).toString(36)+(b>>>0).toString(36);
+}
+// The text of one block, cut into lines at every cell, paragraph and break, so a price stays with its own tile.
+function lgUnits(html){
+  const d=new DOMParser().parseFromString('<body><table><tbody>'+html.replace(/\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}/g,'')+'</tbody></table></body>','text/html');
+  const out=[]; let cur='';
+  const flush=()=>{ const t=cur.replace(/\s+/g,' ').trim(); if(t) out.push(t); cur=''; };
+  (function walk(n){
+    for(const c of n.childNodes){
+      if(c.nodeType===3){ cur+=c.nodeValue.replace(/\[[^\]]*\]/g,' '); continue; }   // [prompts] are placeholders, not claims
+      if(c.nodeType!==1) continue;
+      const tag=c.tagName;
+      if(tag==='SCRIPT'||tag==='STYLE'||/display\s*:\s*none/i.test(c.getAttribute('style')||'')) continue;
+      const edge=LG_EDGE.has(tag);
+      if(edge) flush();
+      walk(c);
+      if(edge) flush();
+    }
+  })(d.body);
+  flush();
+  for(let i=0;i+2<out.length;i++){   // the Events date chip is three cells: THU, 29, OCT
+    if(/^(?:mon|tue|wed|thu|fri|sat|sun)$/i.test(out[i])&&/^\d{1,2}$/.test(out[i+1])&&/^(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)$/i.test(out[i+2])) out.splice(i,3,out[i]+' '+out[i+1]+' '+out[i+2]);
+  }
+  return out;
+}
+const LG_NOLABEL = /^(?:every|mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|[\u25c6\u2022\u00b7*]|\d{1,2}(?::\d\d)?\s?(?:am|pm)?)$/i;
+const LG_CHIP = /^(?:mon|tue|wed|thu|fri|sat|sun)\s+\d{1,2}\s+[a-z]{3}$/i;
+// A short nearby line that names the thing the claim is about: "Riftbound Nexus Night" above its price, the event title next to its date chip.
+function lgLabel(units,i,back){
+  for(const dir of (back?[-1,1]:[1])){
+    for(let k=1;k<=4;k++){
+      const u=units[i+dir*k]; if(u===undefined) break;
+      if(u.length>=3&&u.length<=60&&/[a-z]/i.test(u)&&!LG_NOLABEL.test(u)&&!/^[IVX]+\s*[\u00b7.]/.test(u)&&!lgClaims(u).length) return u;   // skips the roman-numeral section chips
+    }
+  }
+  return '';
+}
+// Hits closer than 40 characters become one claim, so "$10 · A pack for every win" asks for one source, not two.
+function lgClaims(text){
+  const hits=[];
+  for(const [kind,re] of LG_PATTERNS){
+    re.lastIndex=0; let m;
+    while((m=re.exec(text))){ if(!m[0]){ re.lastIndex++; continue; } hits.push({s:m.index,e:m.index+m[0].length,kind}); }
+  }
+  hits.sort((a,b)=>a.s-b.s||b.e-a.e);
+  const out=[];
+  for(const h of hits){
+    const last=out[out.length-1];
+    if(last && h.s<=last.e+40){ last.e=Math.max(last.e,h.e); if(!last.kinds.includes(h.kind)) last.kinds.push(h.kind); }
+    else out.push({s:h.s,e:h.e,kinds:[h.kind]});
+  }
+  return out;
+}
+// What we know about a row: answered in this issue, remembered from an earlier one, or new.
+function lgState(r){
+  const mine=S.ledger&&S.ledger[r.key], lib=sources[r.key];
+  r.entry=null; r.hint=null; r.carried=false;
+  if(mine){ r.entry=mine; r.state=mine.status==='sourced'?'sourced':mine.status==='skip'?'skip':'unconfirmed'; return; }
+  if(lib&&lib.status==='skip'){ r.entry=lib; r.carried=true; r.state='skip'; return; }
+  if(lib&&lib.status==='sourced'){ r.entry=lib; r.carried=true; r.state='carried'; return; }
+  if(lib&&lib.status==='unconfirmed') r.hint=lib;
+  r.state='new';
+}
+function ledgerRows(){
+  const rows=[]; if(!S) return rows;
+  S.ledger=S.ledger||{};
+  const seen=new Map();
+  for(const b of S.blocks){
+    if(!b.on||LG_SKIP.has(b.num)) continue;
+    const units=lgUnits(b.html);
+    units.forEach((unit,i)=>{
+      for(const c of lgClaims(unit)){
+        const left=unit.slice(0,c.s).trim().split(/\s+/).slice(-4).join(' ');
+        const right=unit.slice(c.e).trim().split(/\s+/).slice(0,3).join(' ');
+        const label=lgLabel(units,i,!LG_CHIP.test(unit));
+        const key=lgKey(label+'|'+left+'|'+unit.slice(c.s,c.e)+'|'+right);
+        if(seen.has(key)){ seen.get(key).n++; continue; }
+        const row={key,uid:b.uid,num:b.num,block:metaOf(b.num).title,label,unit,s:c.s,e:c.e,kinds:c.kinds,n:1};
+        seen.set(key,row); rows.push(row);
+      }
+    });
+  }
+  rows.forEach(lgState);
+  return rows;
+}
+function lgSnip(r,pad,max){
+  const u=r.unit; if(u.length<=max) return {pre:u.slice(0,r.s),hit:u.slice(r.s,r.e),post:u.slice(r.e)};
+  let a=Math.max(0,r.s-pad), b=Math.min(u.length,r.e+pad);
+  if(a>0){ const sp=u.indexOf(' ',a); if(sp>=0&&sp<r.s) a=sp+1; }
+  if(b<u.length){ const sp=u.lastIndexOf(' ',b); if(sp>r.e) b=sp; }
+  return {pre:u.slice(a,r.s),hit:u.slice(r.s,r.e),post:u.slice(r.e,b)};
+}
+function lgCheckLine(){
+  const rows=ledgerRows();
+  const n=s=>rows.filter(r=>r.state===s).length;
+  const need=rows.filter(r=>LG_NEED.has(r.state)).length;
+  lgLast={total:rows.length,need};
+  if(!rows.length) return ['ok','Sources: no prices, prizes or dated items in this issue'];
+  if(!need) return ['ok','Every price, prize and date has a source, or is marked not a claim ('+rows.length+')'];
+  const bits=[]; if(n('new')) bits.push(n('new')+' need a source'); if(n('carried')) bits.push(n('carried')+' carried over to recheck'); if(n('unconfirmed')) bits.push(n('unconfirmed')+' marked unconfirmed (say so in the text)');
+  return ['warn','Sources: '+bits.join(', ')+' ('+rows.length+' prices, prizes and dates in all)'];
+}
+
+/* the shared memory of answers */
+function saveSourcesSoon(){ clearTimeout(srcTimer); srcTimer=setTimeout(saveSources,700); }
+async function saveSources(){
+  clearTimeout(srcTimer); srcTimer=0;
+  const keys=Object.keys(sources);
+  if(keys.length>400){ keys.sort((a,b)=>(sources[b].at||'').localeCompare(sources[a].at||'')); keys.slice(400).forEach(k=>delete sources[k]); }
+  try{
+    if(db){
+      // Merge with whatever another tab or person saved meanwhile: for each claim the newer answer wins, and a cleared claim stays cleared.
+      let remote={};
+      try{ const snap=await db.doc('settings/sources').get(); if(snap.exists&&snap.data()&&snap.data().items) remote=snap.data().items; }catch(e){}
+      const merged=Object.assign({},remote);
+      srcGone.forEach(k=>{ delete merged[k]; });
+      for(const [k,v] of Object.entries(sources)){ if(!merged[k]||(v.at||'')>=(merged[k].at||'')) merged[k]=v; }
+      sources=merged; srcGone=new Set();
+      await db.doc('settings/sources').set({items:merged,updatedAt:new Date().toISOString()});
+    } else {
+      localStorage.setItem('bcc-sources',JSON.stringify(sources));
+    }
+  }catch(e){}
+}
+function lgCommit(r,entry){
+  S.ledger=S.ledger||{};
+  if(entry){
+    S.ledger[r.key]=entry;
+    sources[r.key]={status:entry.status,source:entry.source||'',checked:entry.checked,at:new Date().toISOString(),issue:S.name||''};
+    srcGone.delete(r.key);
+  } else {
+    delete S.ledger[r.key];
+    if(sources[r.key]){ delete sources[r.key]; srcGone.add(r.key); }
+  }
+  lgState(r); scheduleSave(); saveSourcesSoon(); renderChecks();
+}
+
+/* the Sources panel */
+function lgListText(){
+  const rows=ledgerRows().filter(r=>r.state!=='skip');
+  const out=['Sources for '+(S.name||'this issue')+', as of '+lgFmt(lgToday()),''];
+  let blk=null;
+  for(const r of rows){
+    if(r.block!==blk){ if(blk!==null) out.push(''); out.push(r.block); blk=r.block; }
+    const sn=lgSnip(r,60,150), e=r.entry;
+    const text=(r.label?r.label+': ':'')+'"'+(sn.pre+sn.hit+sn.post).trim()+'"';
+    if(r.state==='unconfirmed') out.push('- '+text+' Not confirmed yet.'+(e&&e.source?' Note: '+e.source:''));
+    else if(r.state==='sourced') out.push('- '+text+' Source: '+e.source+' (checked '+(lgFmt(e.checked)||'date not given')+')');
+    else out.push('- '+text+' No source yet.');
+  }
+  return out.join('\n');
+}
+function lgSummary(){
+  const rows=lgRowsAtOpen, n=s=>rows.filter(r=>r.state===s).length;
+  const need=rows.filter(r=>LG_NEED.has(r.state)).length;
+  const bits=[]; if(n('new')) bits.push(n('new')+' need a source'); if(n('carried')) bits.push(n('carried')+' carried over to recheck'); if(n('unconfirmed')) bits.push(n('unconfirmed')+' unconfirmed');
+  const el=$('#lgSum'); el.className='status '+(need?'warn':'ok');
+  el.textContent=!rows.length?'Nothing in this issue needs a source.':need?bits.join(', ')+'. '+rows.length+' in all.':'Every price, prize and date has a source, or is marked not a claim.';
+  const c=n('carried'), b=$('#lgAll'); b.hidden=!c; b.textContent='Still true for all '+c+' carried over';
+}
+function lgPaint(li,r){
+  const pill=LG_PILL[r.state], p=$('.pill',li);
+  p.className='pill '+pill[0]; p.textContent=pill[1]+(r.state==='skip'&&r.carried?' (remembered)':'');
+  const e=r.entry||r.hint;
+  const src=$('.lgsrc',li), dt=$('.lgdate',li);
+  if(document.activeElement!==src) src.value=(e&&e.source)||'';
+  if(document.activeElement!==dt) dt.value=(r.entry&&r.entry.checked)||lgToday();
+  const note=$('.lgnote',li);
+  if(r.state==='carried'){ note.hidden=false; note.textContent='Carried over from '+(lgFmt(r.entry.checked)||'an earlier issue')+'. Check that it is still true, then press Still true.'; }
+  else if(r.state==='new'&&r.hint){ note.hidden=false; note.textContent='Marked unconfirmed in an earlier issue ('+(lgFmt(r.hint.checked)||'date not given')+').'; }
+  else note.hidden=true;
+  $('.lgstill',li).hidden=r.state!=='carried';
+  $('.lgunc',li).setAttribute('aria-pressed',String(r.state==='unconfirmed'));
+  $('.lgskip',li).setAttribute('aria-pressed',String(r.state==='skip'));
+  li.setAttribute('data-state',r.state);
+}
+function lgRow(r){
+  const li=document.createElement('li'); li.className='lgrow'; li._r=r;
+  const sn=lgSnip(r,90,240);
+  li.innerHTML=
+    '<div class="lgtop"><span class="lgblk">'+esc(r.block)+'</span>'+(r.label?'<b class="lglabel">'+esc(r.label)+'</b>':'')+'<span class="lgkind">'+esc(r.kinds.join(' + '))+(r.n>1?' (appears '+r.n+' times)':'')+'</span><span class="pill"></span><span class="grow"></span><button class="btn sm ghost lgshow" type="button">Show in email</button></div>'+
+    '<p class="lgctx">'+esc(sn.pre)+'<mark>'+esc(sn.hit)+'</mark>'+esc(sn.post)+'</p>'+
+    '<p class="lgnote hint" hidden></p>'+
+    '<div class="lgctl"><input class="lgsrc" type="text" aria-label="Source" placeholder="Where it came from: a shop page, a calendar, a post by Brendan" autocomplete="off">'+
+    '<input class="lgdate" type="date" aria-label="Checked on">'+
+    '<button class="btn sm primary lgstill" type="button">Still true</button>'+
+    '<button class="btn sm lgunc" type="button" aria-pressed="false">Unconfirmed</button>'+
+    '<button class="btn sm lgskip" type="button" aria-pressed="false">Not a claim</button></div>';
+  lgPaint(li,r);
+  return li;
+}
+function openSources(){
+  if(!S) return;
+  syncFromDom();
+  const rows=ledgerRows();
+  lgRowsAtOpen=rows;
+  const root=$('#modalRoot');
+  root.innerHTML='<div class="scrim" id="scrim"><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="lgT">'+
+    '<div class="lghead"><h2 id="lgT">Sources</h2>'+
+    '<p class="hint" style="margin:0">Every price, prize and date in the blocks that are switched on. Type where each one came from and it is marked Sourced. Next week the same line comes back as carried over, and one click rechecks it. Nothing on this screen goes into the email.</p>'+
+    '<div class="status" id="lgSum"></div>'+
+    '<div class="mrow"><button class="btn primary" id="lgAll" type="button" hidden></button><button class="btn" id="lgCopy" type="button">Copy list for Brendan</button><span class="grow"></span><button class="btn" id="lgClose" type="button">Close</button></div></div>'+
+    '<ul class="lg" id="lgList"></ul>'+
+    '<details id="lgBox"><summary class="dim" style="cursor:pointer;font-weight:700">Show the list as text</summary><textarea id="lgText" readonly spellcheck="false"></textarea></details>'+
+    '</div></div>';
+  const list=$('#lgList');
+  const needNow=rows.filter(r=>LG_NEED.has(r.state));
+  const byBlock=[]; needNow.forEach(r=>{ let g=byBlock.find(x=>x.uid===r.uid); if(!g){ g={uid:r.uid,title:r.block,rows:[]}; byBlock.push(g); } g.rows.push(r); });
+  byBlock.forEach(g=>{
+    const head=document.createElement('li'); head.className='lgbh';
+    const nNew=g.rows.filter(r=>r.state==='new').length;
+    head.innerHTML='<div class="lgbt"><b>'+esc(g.title)+'</b> <span class="hint">'+g.rows.length+(g.rows.length===1?' item':' items')+'</span></div>'+
+      (nNew>1?'<div class="lgbulk"><input class="lgbulksrc" type="text" aria-label="One source for every new item in '+esc(g.title)+'" placeholder="One source for all '+nNew+' new items here, for example: Events page, shop site" autocomplete="off"><button class="btn sm lgbulkgo" type="button">Use for the '+nNew+' new</button></div>':'');
+    head._g=g; list.appendChild(head);
+    g.rows.forEach(r=>list.appendChild(lgRow(r)));
+  });
+  [['sourced','Sourced'],['skip','Not a claim']].forEach(([st,title])=>{
+    const part=rows.filter(r=>r.state===st);
+    if(!part.length) return;
+    const li=document.createElement('li'); li.className='lggroup';
+    const det=document.createElement('details'); det.innerHTML='<summary class="dim" style="cursor:pointer;font-weight:700">'+esc(title)+' ('+part.length+')</summary>';
+    const ul=document.createElement('ul'); ul.className='lg'; ul.style.marginTop='10px';
+    part.forEach(r=>ul.appendChild(lgRow(r)));
+    det.appendChild(ul); li.appendChild(det); list.appendChild(li);
+  });
+  if(!rows.length){ const li=document.createElement('li'); li.className='hint'; li.textContent='No prices, prizes or dated items found in the blocks that are switched on.'; list.appendChild(li); }
+  lgSummary();
+  const paintAll=()=>{ list.querySelectorAll('li.lgrow').forEach(li=>lgPaint(li,li._r)); lgSummary(); };
+  list.addEventListener('input',e=>{
+    const li=e.target.closest('li.lgrow'); if(!li||!e.target.classList.contains('lgsrc')) return;
+    const r=li._r, v=e.target.value.trim();
+    if(v.length>=2) lgCommit(r,{status:'sourced',source:v,checked:$('.lgdate',li).value||lgToday()});
+    else if(r.state==='sourced'||r.state==='carried') lgCommit(r,null);
+    else return;
+    lgPaint(li,r); lgSummary();
+  });
+  list.addEventListener('change',e=>{
+    const li=e.target.closest('li.lgrow'); if(!li||!e.target.classList.contains('lgdate')) return;
+    const r=li._r, v=e.target.value; if(!/^\d{4}-\d\d-\d\d$/.test(v)||!r.entry||r.carried) return;
+    lgCommit(r,Object.assign({},r.entry,{checked:v})); lgPaint(li,r); lgSummary();
+  });
+  list.addEventListener('click',e=>{
+    const btn=e.target.closest('button');
+    const bh=e.target.closest('li.lgbh');
+    if(btn&&bh&&btn.classList.contains('lgbulkgo')){
+      const v=$('.lgbulksrc',bh).value.trim();
+      if(v.length<2){ toast('Type the source first'); $('.lgbulksrc',bh).focus(); return; }
+      const todo=bh._g.rows.filter(r=>r.state==='new');
+      todo.forEach(r=>lgCommit(r,{status:'sourced',source:v,checked:lgToday()}));
+      paintAll(); bh.querySelector('.lgbulk').hidden=true; toast('Added to '+todo.length+' items'); return;
+    }
+    const li=e.target.closest('li.lgrow'); if(!btn||!li) return;
+    const r=li._r, src=$('.lgsrc',li);
+    if(btn.classList.contains('lgshow')){ closeModal(); renderChecks(); scrollToBlock(r.uid); return; }
+    if(btn.classList.contains('lgstill')) lgCommit(r,{status:'sourced',source:r.entry.source,checked:lgToday()});
+    else if(btn.classList.contains('lgunc')) lgCommit(r,r.state==='unconfirmed'?null:{status:'unconfirmed',source:src.value.trim(),checked:lgToday()});
+    else if(btn.classList.contains('lgskip')) lgCommit(r,r.state==='skip'?null:{status:'skip',source:'',checked:lgToday()});
+    else return;
+    lgPaint(li,r); lgSummary();
+  });
+  $('#lgAll').onclick=()=>{ rows.filter(r=>r.state==='carried').forEach(r=>lgCommit(r,{status:'sourced',source:r.entry.source,checked:lgToday()})); paintAll(); toast('Rechecked'); };
+  $('#lgCopy').onclick=async()=>{
+    const t=lgListText(); $('#lgText').value=t;
+    try{ await navigator.clipboard.writeText(t); toast('Copied'); }
+    catch(err){ $('#lgBox').open=true; $('#lgText').focus(); $('#lgText').select(); toast('Press Ctrl or Cmd C to copy'); }
+  };
+  const close=()=>{ closeModal(); renderChecks(); };
+  $('#lgClose').onclick=close;
+  $('#scrim').addEventListener('click',e=>{ if(e.target.id==='scrim') close(); });
+  const first=list.querySelector('.lgbulksrc')||list.querySelector('li.lgrow[data-state="new"] .lgsrc')||list.querySelector('li.lgrow[data-state="carried"] .lgstill');
+  (first||$('#lgClose')).focus();
+}
+
 /* ---------- wiring ---------- */
 function setView(v){
   frame.classList.toggle('phone',v==='phone');
@@ -1202,7 +1529,7 @@ function wire(){
   $('#btnB').onclick=()=>format('bold'); $('#btnI').onclick=()=>format('italic');
   $('#btnLink').onclick=()=>{ if(!savedRange){ toast('Select some text in the email first'); return; } setCtx('newlink'); };
   $('#btnNext').onclick=()=>gotoPrompt(1); $('#btnUndo').onclick=undo;
-  $('#btnCopy').onclick=copyOut; $('#btnDownload').onclick=()=>download();
+  $('#btnCopy').onclick=copyOut; $('#btnDownload').onclick=()=>download(); $('#btnSources').onclick=openSources;
   $('#btnNew').onclick=()=>{ flush(); newIssue(); };
   $('#btnStart').onclick=newIssue;
   $('#issueSel').onchange=async e=>{ const id=e.target.value; await flush(); openIssue(id); };
@@ -1211,7 +1538,7 @@ function wire(){
   $('#btnDelNo').onclick=()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; };
   $('#btnDelYes').onclick=async()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; await deleteIssue(); };
   $('#logoUrl').oninput=e=>{ settings.logoUrl=e.target.value.trim(); clearTimeout(wire._t); wire._t=setTimeout(()=>{ saveSettings(); refreshAll(); },500); };
-  window.addEventListener('pagehide',()=>{ flush(); });
+  window.addEventListener('pagehide',()=>{ flush(); if(srcTimer) saveSources(); });
 }
 
 async function boot(){
@@ -1223,21 +1550,22 @@ async function boot(){
   }catch(e){ db=null; }
   try{
     if(db){
-      const [ix,ds,st]=await Promise.all([db.collection('index').get(),db.collection('defaults').get(),db.doc('settings/main').get()]);
+      const [ix,ds,st,so]=await Promise.all([db.collection('index').get(),db.collection('defaults').get(),db.doc('settings/main').get(),db.doc('settings/sources').get().catch(()=>null)]);
       index=ix.docs.map(d=>Object.assign({id:d.id},d.data()));
       ds.docs.forEach(d=>{ const v=d.data(); if(v&&v.num&&v.html) defaults[v.num]=v.html; });
       if(st.exists) settings=Object.assign(settings,st.data());
+      if(so&&so.exists&&so.data()&&so.data().items&&typeof so.data().items==='object') sources=so.data().items;
     } else {
-      try{ const s=JSON.parse(localStorage.getItem('bcc-settings')||'null'); if(s) settings=s; const d=JSON.parse(localStorage.getItem('bcc-defaults')||'null'); if(d) defaults=d; }catch(e){}
+      try{ const s=JSON.parse(localStorage.getItem('bcc-settings')||'null'); if(s) settings=s; const d=JSON.parse(localStorage.getItem('bcc-defaults')||'null'); if(d) defaults=d; const so=JSON.parse(localStorage.getItem('bcc-sources')||'null'); if(so&&typeof so==='object') sources=so; }catch(e){}
     }
   }catch(e){ setSave('Saved issues could not load',true); }
   renderTop(); setSave(db?'':'Not saved between visits here');
   if(db && index.length){ await openIssue(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id); }
   else if(!db){
-    try{ const s=JSON.parse(localStorage.getItem('bcc-issue')||'null'); if(s&&s.blocks){ S={id:s.id,name:s.name,blocks:s.blocks,updatedAt:s.updatedAt}; index=[{id:S.id,name:S.name,updatedAt:S.updatedAt}]; backfill(S); render({scroll:false}); } }catch(e){}
+    try{ const s=JSON.parse(localStorage.getItem('bcc-issue')||'null'); if(s&&s.blocks){ S={id:s.id,name:s.name,blocks:s.blocks,updatedAt:s.updatedAt,ledger:(s.ledger&&typeof s.ledger==='object')?s.ledger:{}}; index=[{id:S.id,name:S.name,updatedAt:S.updatedAt}]; backfill(S); render({scroll:false}); } }catch(e){}
   }
 }
 boot();
-window.__bcc={ get S(){return S}, exportText, syncFromDom, TPL, runChecks, newIssue, render, gotoPrompt, rowAction, setCtx, get fdoc(){return fdoc}, get fwin(){return fwin}, promptCount, settings };
+window.__bcc={ ledgerRows, openSources, lgListText, get sources(){return sources}, get S(){return S}, exportText, syncFromDom, TPL, runChecks, newIssue, render, gotoPrompt, rowAction, setCtx, get fdoc(){return fdoc}, get fwin(){return fwin}, promptCount, settings };
 </script>
 </body></html>
