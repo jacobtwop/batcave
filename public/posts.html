@@ -1305,7 +1305,7 @@ function openFields(bodyCopied){
   else if(bodyCopied===false) html+='<div class="status warn">The browser would not copy here. Click the Body box below, press Ctrl or Cmd A, then Ctrl or Cmd C.</div>';
   if(checks.length) html+='<div><h3>Still open ('+checks.length+')</h3><ul class="checks" style="margin-top:6px">'+pills(checks)+'</ul></div>';
   else html+='<div class="status ok">Every check is clear.</div>';
-  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b> and the theme template <b>bat-city</b>. Leave it as a draft. Brendan can read it in Shopify and comment.</p>';
+  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b>. Leave the theme template on <b>Default article</b>, which now uses the Bat City layout. Leave it as a draft. Brendan can read it in Shopify and comment.</p>';
   let lastWhere='';
   rows.forEach((r,i)=>{
     const empty=!r.value && !r.always;
