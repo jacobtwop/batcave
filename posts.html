@@ -1,0 +1,1505 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23682077'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='20' font-weight='800' text-anchor='middle' fill='%23C9FA00'%3EB%3C/text%3E%3C/svg%3E"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Blog Post Composer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400&family=Questrial&display=swap" rel="stylesheet">
+<style>
+/* Blog Post Composer. Same workbench as the Newsletter Composer: a rail of cards on the left,
+   the post itself in the middle. The post sheet uses the blog's own palette and type so what you
+   type is what the blog will show. The chrome stays quiet. */
+:root{
+  --bg:#F3EEF6; --panel:#FFFFFF; --panel2:#F9F5FB; --ink:#1B1024; --muted:#6A5B77; --line:#DDD1E5;
+  --accent:#682077; --accent-ink:#FFFFFF; --accent-soft:#EDE0F3; --hot:#C4006A; --lime:#C9FA00; --lime-ink:#1B1024;
+  --ok:#1D7440; --ok-soft:#DDF1E3; --warn:#9A5400; --warn-soft:#FBEBCF; --stop:#B3002F; --stop-soft:#FADADF;
+  --shadow:0 1px 2px rgba(27,16,36,.08),0 10px 28px rgba(27,16,36,.10);
+  --ui:'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#120A1A; --panel:#1D1128; --panel2:#251633; --ink:#F2E9F7; --muted:#B9A8C7; --line:#3B2A4A;
+  --accent:#C98BE2; --accent-ink:#1A0B22; --accent-soft:#3A2250; --hot:#FF5CAF;
+  --ok:#7FD6A0; --ok-soft:#173B27; --warn:#F0B35A; --warn-soft:#3F2A0C; --stop:#FF7D96; --stop-soft:#481425;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#120A1A; --panel:#1D1128; --panel2:#251633; --ink:#F2E9F7; --muted:#B9A8C7; --line:#3B2A4A;
+  --accent:#C98BE2; --accent-ink:#1A0B22; --accent-soft:#3A2250; --hot:#FF5CAF;
+  --ok:#7FD6A0; --ok-soft:#173B27; --warn:#F0B35A; --warn-soft:#3F2A0C; --stop:#FF7D96; --stop-soft:#481425;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--ui);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+[hidden]{display:none!important}
+
+#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;padding-block:12px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.brand{display:flex;flex-direction:column;line-height:1.1;margin-right:6px}
+.brand b{font:800 18px/1.1 var(--ui);letter-spacing:-.01em}
+.brand span{font:700 10px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--hot)}
+.issuebox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+.issuebox select{max-width:260px}
+.grow{flex:1 1 auto}
+.savestate{font:500 12px/1 var(--ui);color:var(--muted);min-width:78px;text-align:right}
+.savestate.bad{color:var(--warn)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 11px;font-weight:700;font-size:13px;line-height:1.1;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 8px;font-size:12px}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--stop);border-color:var(--stop)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+input[type=text],input[type=url],select,textarea.plain{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;min-width:0}
+input[type=text]:focus,input[type=url]:focus,select:focus,textarea.plain:focus{border-color:var(--accent)}
+textarea.plain{width:100%;resize:vertical;line-height:1.4}
+label.f{display:block;font:700 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+
+.main{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:14px;min-height:0}
+.rail{grid-column:1;grid-row:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.card h2{margin:0 0 8px;font:800 12px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card p{margin:0 0 8px}
+.card .fld{margin:0 0 10px}
+.hint{color:var(--muted);font-size:12px}
+.cnt{float:right;font:600 11px/1 var(--ui);letter-spacing:0;text-transform:none;color:var(--muted)}
+.cnt.over{color:var(--warn)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chips .btn{font-weight:600}
+
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:12.5px}
+.pill{flex:0 0 auto;font:800 10px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;padding:4px 6px;border-radius:4px;margin-top:1px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.stop{background:var(--stop-soft);color:var(--stop)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+.tick{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin:0 0 7px}
+.tick input{margin-top:2px;flex:0 0 auto}
+details.card>summary{cursor:pointer;font:800 12px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+details.card[open]>summary{margin-bottom:8px}
+.voice b{font-weight:800}
+.voice ul{margin:0 0 8px;padding-left:18px}
+
+.stage{grid-column:2;grid-row:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+.bar .sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.count{font:700 12px/1 var(--ui);color:var(--muted)}
+.count b{color:var(--hot);font-size:14px}
+.count .okc{color:var(--ok)}
+.ctx{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;background:var(--accent-soft);border-radius:8px;padding:6px 9px;font-size:12.5px}
+.ctx input{flex:1 1 220px}
+.ctx .t{font:800 11px/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.sheetWrap{flex:1 1 auto;min-height:0;overflow:auto;padding:2px 2px 14px}
+.empty{flex:1 1 auto;display:grid;place-items:center;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:24px}
+.empty h1{margin:0 0 6px;font:800 24px/1.15 var(--ui);letter-spacing:-.01em}
+.empty p{margin:0 auto 14px;max-width:52ch;color:var(--muted)}
+.types{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;text-align:left;margin:0 auto;max-width:720px}
+.types button{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.types button:hover{border-color:var(--accent);background:var(--panel2)}
+.types b{font:800 14px/1.2 var(--ui)}
+.types span{font-size:12px;color:var(--muted)}
+
+/* ---------- the post sheet: the blog's own palette, always light ---------- */
+.sheet{--pd:#410B49;--p:#682077;--m:#FF0A8A;--md:#D4006F;--l:#C9FA00;--n:#0E1B4D;--s:#4A547A;--lav:#F4ECF7;--rule:#CDBFD6;--lil:#EAD9EE;
+  --head:Archivo,'Helvetica Neue',Helvetica,Arial,sans-serif;--body:Questrial,'Trebuchet MS','Helvetica Neue',Helvetica,Arial,sans-serif;
+  max-width:900px;margin:0 auto;background:#fff;color:var(--n);font:400 18px/1.65 var(--body);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
+.sheet ::selection{background:#FFD3EA}
+.sheet .hero{position:relative;background:var(--pd);color:#fff;padding:38px 28px 30px;overflow:hidden}
+.sheet .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,10,138,.38) 1.6px,transparent 1.7px);background-size:14px 14px;-webkit-mask-image:linear-gradient(100deg,transparent 45%,#000);mask-image:linear-gradient(100deg,transparent 45%,#000)}
+.sheet .hero>*{position:relative;z-index:1}
+.sheet .chip{display:inline-block;background:var(--l);color:var(--n);border:2px solid var(--n);padding:6px 12px;font:800 12px/1.2 var(--head);letter-spacing:.14em;text-transform:uppercase}
+.sheet .hero textarea{display:block;width:100%;border:0;background:transparent;color:#fff;resize:none;overflow:hidden;padding:2px 4px;margin-left:-4px;border-radius:2px}
+.sheet .hero textarea:hover{outline:1px dashed rgba(255,10,138,.7);outline-offset:2px}
+.sheet .hero textarea:focus{outline:2px solid #FF0A8A;outline-offset:2px}
+.sheet .hero textarea::placeholder{color:rgba(234,217,238,.7)}
+.sheet .heroTitle{margin:16px 0 12px;font:800 clamp(30px,4.6vw,48px)/1.08 var(--head)}
+.sheet .heroStand{margin:0 0 14px;max-width:52ch;font:400 clamp(17px,2.1vw,21px)/1.5 var(--body);color:var(--lil)!important}
+.sheet .byline{margin:0;font:700 13px/1.5 var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--l)}
+.sheet .figure{margin:0;padding:20px 28px 0}
+.sheet .imgslot{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border:2px dashed var(--rule);background:var(--lav);padding:14px 16px;font:400 14px/1.4 var(--ui);color:var(--s)}
+.sheet .imgslot label{display:flex;flex:1 1 260px;gap:8px;align-items:center;font-weight:700}
+.sheet .imgslot input{flex:1 1 auto;border:1px solid var(--rule);border-radius:4px;padding:6px 8px;background:#fff;color:var(--n)}
+
+.sheet .prose{max-width:720px;margin:0 auto;padding:34px 28px 18px;outline:none;min-height:340px}
+.sheet .prose>:first-child{margin-top:0}
+.sheet .prose p,.sheet .prose ul,.sheet .prose ol{margin:0 0 1.1em}
+.sheet .prose h2{margin:1.9em 0 .5em;font:800 clamp(24px,3.4vw,30px)/1.15 var(--head);color:var(--pd)}
+.sheet .prose h3{margin:1.9em 0 .4em;font:800 13px/1.3 var(--head);letter-spacing:.16em;text-transform:uppercase;color:var(--md)}
+.sheet .prose a{color:var(--pd);font-weight:700;text-decoration:underline;text-decoration-color:var(--m);text-decoration-thickness:2px;text-underline-offset:3px}
+.sheet .prose ul,.sheet .prose ol{padding-left:1.3em}
+.sheet .prose li{margin:0 0 .35em}
+.sheet .prose li::marker{color:var(--md);font-weight:700}
+.sheet .prose img{display:block;margin:1.6em 0;border:3px solid var(--pd);max-width:100%;height:auto;cursor:pointer}
+.sheet .prose>p:first-child{font-size:clamp(20px,2.6vw,23px);line-height:1.5;color:var(--pd)}
+.sheet .prose>ol{list-style:none;counter-reset:bcstep;padding:0;margin:1.6em 0}
+.sheet .prose>ol>li{counter-increment:bcstep;position:relative;margin:0 0 14px;padding:0 0 0 58px;min-height:44px}
+.sheet .prose>ol>li::before{content:counter(bcstep);position:absolute;left:0;top:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--pd);color:var(--l);font:800 22px/1 var(--head);user-select:none}
+.sheet .prose>ol>li>strong:first-child{display:block;font:800 18px/1.3 var(--head);color:var(--pd)}
+.sheet .prose>blockquote{margin:2em 0;padding:6px 0 6px 22px;border-left:8px solid var(--m);font:800 clamp(22px,3.4vw,30px)/1.2 var(--head);color:var(--pd)}
+.sheet .prose>blockquote p{margin:0 0 .6em}
+.sheet .prose>blockquote p:last-child{margin-bottom:0}
+.sheet .prose hr{border:0;border-top:3px solid var(--pd);margin:2em 0}
+.sheet .prose .bc-redact{background:#0B0710;color:transparent;caret-color:#C9FA00;border-radius:2px;padding:.04em .12em;cursor:text}
+.sheet .prose .bc-redact:hover,.sheet .prose .bc-redact:focus{color:var(--l)}
+::highlight(bc-ph){background-color:#FFE66B;color:#1B1024}
+
+.sheet .nightcard input:focus,.sheet .nightcard textarea:focus,.sheet .imgslot input:focus{outline:2px solid #FF0A8A;outline-offset:1px}
+
+/* named night */
+.sheet .nightwrap{max-width:720px;margin:6px auto 30px;width:calc(100% - 56px)}
+.sheet .addnight{display:block;width:100%;border:2px dashed var(--rule);background:transparent;color:var(--s);padding:12px;font:700 14px/1.3 var(--ui);cursor:pointer}
+.sheet .addnight:hover{border-color:var(--md);color:var(--md)}
+.sheet .nightcard{border:3px solid var(--pd);background:var(--lav);box-shadow:6px 6px 0 var(--m)}
+.sheet .nightcard .tag{margin:0;padding:8px 18px;background:var(--pd);color:var(--l);font:800 11px/1.3 var(--head);letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.sheet .nightcard .tag .btn{margin-left:auto;text-transform:none;letter-spacing:0}
+.sheet .nightgrid{display:grid;grid-template-columns:130px minmax(0,1fr);}
+.sheet .nighttile{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:6px;padding:14px 10px;background:var(--md);color:#fff;text-align:center;font-family:var(--head);font-weight:800}
+.sheet .nighttile input{width:100%;text-align:center;border:0;border-bottom:1px dashed rgba(255,255,255,.6);background:transparent;color:#fff;font:800 28px/1.1 var(--head);padding:2px 0;text-transform:uppercase}
+.sheet .nighttile input.tm{font:800 12px/1.3 var(--head);letter-spacing:.1em;text-transform:none}
+.sheet .nighttile input::placeholder{color:rgba(255,255,255,.65)}
+.sheet .nightbody{padding:14px 18px;display:grid;gap:8px}
+.sheet .nightbody input,.sheet .nightbody textarea{width:100%;border:1px dashed var(--rule);background:#fff;color:var(--n);padding:5px 8px}
+.sheet .nightbody input.nname{font:800 clamp(20px,2.8vw,26px)/1.15 var(--head);color:var(--pd);border-style:none none dashed none;background:transparent}
+.sheet .nightbody textarea{font:400 16px/1.5 var(--body);resize:none;overflow:hidden}
+.sheet .nightbody input.nlink{font:400 13px/1.4 var(--ui)}
+.sheet .nightpick{width:100%;border:1px solid var(--rule);border-radius:4px;background:#fff;color:var(--n);padding:5px 8px;font:600 13px/1.3 var(--ui)}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-weight:700;font-size:13px;box-shadow:var(--shadow);z-index:60;max-width:calc(100% - 32px)}
+.scrim{position:fixed;inset:0;background:rgba(18,10,26,.55);display:grid;place-items:center;padding:16px;z-index:50}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);width:min(760px,100%);max-height:calc(100% - 8px);overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.modal h2{margin:0;font:800 20px/1.15 var(--ui)}
+.modal h3{margin:6px 0 0;font:800 12px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.status{padding:8px 10px;border-radius:6px;font-weight:700}
+.status.ok{background:var(--ok-soft);color:var(--ok)}
+.status.warn{background:var(--warn-soft);color:var(--warn)}
+.mrow{display:flex;flex-wrap:wrap;gap:8px}
+.dim{color:var(--muted)}
+.frow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
+.frow .fl{font:800 12px/1.3 var(--ui);letter-spacing:.06em}
+.frow .fw{font-size:12px;color:var(--muted)}
+.frow textarea{grid-column:1;width:100%;font:400 12px/1.5 var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;resize:vertical;min-height:34px}
+.frow .btn{grid-column:2;grid-row:1 / span 3}
+.frow.skip{opacity:.55}
+.chooser{display:grid;gap:8px}
+
+@media (max-width:900px){
+  html,body{height:auto}
+  #app{height:auto;display:flex;flex-direction:column}
+  .main{display:flex;flex-direction:column}
+  .stage{order:1}
+  .rail{order:2;overflow:visible}
+  .sheetWrap{flex:none;overflow:visible}
+  .bar{position:sticky;top:0;z-index:5}
+  .savestate{text-align:left}
+  .sheet .hero{padding:28px 18px 22px}
+  .sheet .prose{padding:24px 18px 14px}
+  .sheet .figure{padding:16px 18px 0}
+  .sheet .nightwrap{width:calc(100% - 36px)}
+  .sheet .nightgrid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+
+<div id="app">
+  <header class="top">
+    <div class="brand"><b>Blog Post Composer</b><span>Bat City Games &amp; Comics</span></div>
+    <div class="issuebox">
+      <label class="f" for="postSel" style="margin:0" hidden>Post</label>
+      <select id="postSel" aria-label="Post"></select>
+      <button class="btn sm" id="btnNew" type="button">New post</button>
+      <button class="btn sm danger" id="btnDel" type="button">Delete</button>
+      <span id="delAsk" hidden>Delete this post? <button class="btn sm danger" id="btnDelYes" type="button">Yes, delete</button> <button class="btn sm" id="btnDelNo" type="button">Keep</button></span>
+    </div>
+    <span class="grow"></span>
+    <span class="savestate" id="saveState" role="status"></span>
+    <button class="btn" id="btnFields" type="button">Fields for Shopify</button>
+    <button class="btn primary" id="btnCopy" type="button">Copy body</button>
+  </header>
+
+  <div class="main">
+    <section class="stage" aria-label="Post">
+      <div class="bar" id="bar" role="toolbar" aria-label="Formatting">
+        <button class="btn sm" id="tB" type="button" title="Bold (select text first)"><b>B</b></button>
+        <button class="btn sm" id="tI" type="button" title="Italic (select text first)"><i>I</i></button>
+        <button class="btn sm" id="tLink" type="button" title="Turn the selected text into a link">Link</button>
+        <span class="sep"></span>
+        <button class="btn sm" id="tH2" type="button" aria-pressed="false" title="Section heading">Heading</button>
+        <button class="btn sm" id="tH3" type="button" aria-pressed="false" title="Small label heading">Label</button>
+        <button class="btn sm" id="tOL" type="button" aria-pressed="false" title="Numbered steps. Start a step with a bold phrase to make it a short heading.">Steps</button>
+        <button class="btn sm" id="tUL" type="button" aria-pressed="false" title="Bulleted list">Bullets</button>
+        <button class="btn sm" id="tQ" type="button" aria-pressed="false" title="Pull quote: one line worth reading twice">Pull quote</button>
+        <button class="btn sm" id="tImg" type="button" title="Add a picture by its web address">Picture</button>
+        <span class="sep"></span>
+        <button class="btn sm" id="tNext" type="button" title="Jump to the next [prompt] and select it. Tab does the same inside the post.">Next prompt</button>
+        <span class="count" id="count"></span>
+        <span class="grow"></span>
+        <button class="btn sm" id="tUndo" type="button">Undo</button>
+        <button class="btn sm" id="tRedo" type="button">Redo</button>
+      </div>
+      <div class="ctx" id="ctx" hidden></div>
+      <div class="sheetWrap" id="sheetWrap">
+        <article class="sheet" id="sheet" aria-label="The post, as the blog will show it">
+          <header class="hero">
+            <span class="chip" id="chipOut">The Batcave</span>
+            <textarea id="fTitle" class="heroTitle" data-f="title" rows="1" placeholder="Post title" aria-label="Post title"></textarea>
+            <textarea id="fExcerpt" class="heroStand" data-f="excerpt" rows="2" placeholder="Excerpt: one or two sentences that make someone click" aria-label="Excerpt"></textarea>
+            <p class="byline" id="bylineOut"></p>
+          </header>
+          <figure class="figure">
+            <div class="imgslot">
+              <span>Featured image: upload it in Shopify.</span>
+              <label>Alt text <input type="text" data-f="alt" id="fAlt" placeholder="Describe the picture in a short sentence"></label>
+            </div>
+          </figure>
+
+          <div class="prose" id="postBody" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Post body"></div>
+
+          <div class="nightwrap" id="nightWrap">
+            <button class="addnight" id="addNight" type="button">Add a named night to the end of this post</button>
+            <section class="nightcard" id="nightCard" aria-label="Named night card" hidden>
+              <p class="tag"><span>Named night</span><button class="btn sm ghost" id="rmNight" type="button">Remove</button></p>
+              <div class="nightgrid">
+                <div class="nighttile">
+                  <input type="text" data-f="night.day" aria-label="Day" placeholder="WED" maxlength="4">
+                  <input class="tm" type="text" data-f="night.time" aria-label="Time" placeholder="6 to 10 PM">
+                </div>
+                <div class="nightbody">
+                  <select class="nightpick" id="nightPick" aria-label="Pick a weekly night"></select>
+                  <input class="nname" type="text" data-f="night.name" aria-label="Night name" placeholder="Night name">
+                  <textarea data-f="night.blurb" rows="2" aria-label="One or two sentences" placeholder="One or two sentences about why this post ends at this night."></textarea>
+                  <input class="nlink" type="text" data-f="night.link" aria-label="Button link" placeholder="Button link (the night you pick fills this in)">
+                </div>
+              </div>
+            </section>
+          </div>
+        </article>
+      </div>
+      <div class="empty" id="empty" hidden>
+        <div>
+          <h1>No post yet</h1>
+          <p>Pick a kind of post. Each one opens with prompts to fill in and checks that read the post against the house rules.</p>
+          <div class="types" id="emptyTypes"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="rail" aria-label="Details and checks">
+      <div class="card">
+        <h2>This post</h2>
+        <div class="fld"><label class="f" for="fType">Kind of post</label><select id="fType" style="width:100%"></select><p class="hint" id="typeHint" style="margin:6px 0 0"></p></div>
+        <div class="fld"><label class="f" for="fColumn">Column</label><select id="fColumn" style="width:100%"><option value="">None: a regular Batcave post</option><option value="spoiler">Spoiler Alert</option><option value="book">Batcave Book Club</option></select><p class="hint" id="columnHint" style="margin:6px 0 0"></p></div>
+        <div class="fld" id="readFld" hidden><label class="f" for="fRead">Read status</label><select id="fRead" style="width:100%"><option value="">No status (an announcement)</option><option value="First Read">First Read: we read it first</option><option value="Reread">Reread</option></select></div>
+        <div class="fld"><label class="f" for="fTags">Tags</label><input id="fTags" type="text" data-f="tags" style="width:100%" placeholder="Guides, Pull List"><div class="chips" id="tagChips"></div><p class="hint" style="margin:6px 0 0">The first tag is the chip above the title.</p></div>
+        <div class="fld"><label class="f" for="fByline">Byline (optional)</label><input id="fByline" type="text" data-f="byline" style="width:100%" placeholder="Who signs this post"><p class="hint" id="bylineHint" style="margin:6px 0 0"></p></div>
+      </div>
+      <div class="card">
+        <h2>Search listing</h2>
+        <div class="fld"><label class="f" for="fSeoTitle">Page title <span class="cnt" id="cSeoTitle"></span></label><input id="fSeoTitle" type="text" data-f="seoTitle" style="width:100%" placeholder="Leave empty to use the post title"></div>
+        <div class="fld"><label class="f" for="fSeoDesc">Meta description <span class="cnt" id="cSeoDesc"></span></label><textarea id="fSeoDesc" class="plain" data-f="seoDesc" rows="3" placeholder="One plain sentence for the search results"></textarea></div>
+        <div class="fld" style="margin-bottom:0"><label class="f" for="fHandle">URL handle</label><input id="fHandle" type="text" data-f="handle" style="width:100%" placeholder=""><div class="chips"><button class="btn sm" id="useHandle" type="button">Use suggestion</button></div></div>
+      </div>
+      <div class="card">
+        <h2>Checks</h2>
+        <ul class="checks" id="checks"></ul>
+      </div>
+      <div class="card">
+        <h2>Confirm by hand</h2>
+        <div id="confirms"></div>
+        <p class="hint" style="margin:6px 0 0">Brendan can read any draft in Shopify and comment. Ask him first only when you are not comfortable with something.</p>
+      </div>
+      <details class="card voice">
+        <summary>House voice</summary>
+        <p><b>The Welcoming Counter.</b> Newcomer-first, grounded and plainspoken, enthusiastic without fluff, anchored in Sunset Valley and South Austin. Dry, specific, warm.</p>
+        <p><b>Use</b></p>
+        <ul><li>the room, open tables, game night, the counter</li><li>pull list, back-issue run, learn to play, gateway game</li><li>staff picks, restock alert</li></ul>
+        <p><b>Avoid</b></p>
+        <ul><li>patrons, consumers, foot traffic, filthy casuals</li><li>huge savings, blowouts, lowest prices in town</li><li>sarcasm, snobbery, gatekeeping, mocking mainstream titles</li></ul>
+        <p class="hint" style="margin:0">One bat pun per piece, maximum. Write Bat City Games &amp; Comics in full, every time, and spell out Highway 290. The one exception is the byline, The Bat City Crew.</p>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+/* Batcave shim: gives the composer the same window.claude.use('db') and ('downloads')
+   it gets inside claude.ai, but backed by this site's own /api and a passcode sign-in.
+   The composer waits for use('db'), so nothing shows until the sign-in is done. */
+(function () {
+  'use strict';
+  var API = '/api';
+  var sessionP = null;     // resolves once we know we are signed in
+  var reloginP = null;     // shared while the passcode box is open mid-session
+  var inflight = new Set();
+  var frozen = false;      // set just before a reload so a stale save cannot overwrite a restore
+  // Two pages share this file: the Newsletter composer at / and the Blog posts composer at /posts.
+  var PAGE = /^\/posts(\.html|\/)?$/.test(location.pathname) ? 'posts' : 'news';
+
+  /* ---------- sign-in screen ---------- */
+  var css = [
+    '#bcGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;',
+    'padding:16px;background:var(--bg,#F3EEF6);color:var(--ink,#1B1024);font:400 14px/1.45 var(--ui,system-ui,sans-serif)}',
+    '#bcGate[hidden]{display:none!important}',
+    '#bcGate .bcBox{width:100%;max-width:360px;background:var(--panel,#fff);border:1px solid var(--line,#DDD1E5);',
+    'border-radius:12px;padding:22px;box-shadow:var(--shadow,0 10px 28px rgba(27,16,36,.1))}',
+    '#bcGate .bcBrand{display:flex;flex-direction:column;line-height:1.1;margin-bottom:14px}',
+    '#bcGate .bcBrand b{font:800 20px/1.1 var(--ui,system-ui,sans-serif);letter-spacing:-.01em}',
+    '#bcGate .bcBrand span{font:700 10px/1.5 var(--ui,system-ui,sans-serif);letter-spacing:.14em;text-transform:uppercase;color:var(--hot,#C4006A)}',
+    '#bcGate h2{margin:0 0 6px;font:800 15px/1.3 var(--ui,system-ui,sans-serif)}',
+    '#bcGate p{margin:0 0 12px;color:var(--muted,#6A5B77)}',
+    '#bcGate p.bcErr{color:var(--stop,#B3002F);font-weight:600}',
+    '#bcGate label{display:block;margin:0 0 4px;font:700 11px/1.3 var(--ui,system-ui,sans-serif);letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#6A5B77)}',
+    '#bcGate input[type=password]{width:100%;background:var(--panel,#fff);color:inherit;border:1px solid var(--line,#DDD1E5);',
+    'border-radius:6px;padding:9px 10px;font:inherit;margin-bottom:12px}',
+    '#bcGate input[type=password]:focus{border-color:var(--accent,#682077);outline:3px solid var(--hot,#C4006A);outline-offset:1px}',
+    '#bcGate button{display:inline-flex;align-items:center;justify-content:center;width:100%;border:1px solid var(--accent,#682077);',
+    'background:var(--accent,#682077);color:var(--accent-ink,#fff);border-radius:6px;padding:9px 12px;font:800 14px/1.1 var(--ui,system-ui,sans-serif);cursor:pointer}',
+    '#bcGate button:disabled{opacity:.55;cursor:default}',
+    '#bcGate .bcUser{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}',
+    '.bcTabs{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line,#DDD1E5);border-radius:8px;background:var(--panel2,#F9F5FB)}',
+    '.bcTabs a{display:inline-flex;align-items:center;padding:6px 12px;border-radius:6px;font:700 13px/1.1 var(--ui,system-ui,sans-serif);',
+    'color:var(--muted,#6A5B77);text-decoration:none;white-space:nowrap}',
+    '.bcTabs a:hover{color:var(--ink,#1B1024)}',
+    '.bcTabs a:focus-visible{outline:3px solid var(--hot,#C4006A);outline-offset:1px}',
+    '.bcTabs a[aria-current=page]{background:var(--accent,#682077);color:var(--accent-ink,#fff);cursor:default}'
+  ].join('');
+  var styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
+
+  var gate = null;
+  function node(tag, props, kids) {
+    var n = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      if (k === 'text') n.textContent = props[k]; else n.setAttribute(k, props[k]);
+    });
+    (kids || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+  function openGate(title, msg, opts) {
+    opts = opts || {};
+    if (!gate) {
+      gate = node('div', { id: 'bcGate' });
+      document.body.appendChild(gate);
+    }
+    gate.hidden = false;
+    gate.textContent = '';
+    var box = node('div', { 'class': 'bcBox', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'bcT' });
+    box.appendChild(node('div', { 'class': 'bcBrand' }, [node('b', { text: PAGE === 'posts' ? 'Blog Post Composer' : 'Newsletter Composer' }), node('span', { text: 'Bat City Games & Comics' })]));
+    box.appendChild(node('h2', { id: 'bcT', text: title }));
+    if (msg) box.appendChild(node('p', { 'class': opts.error ? 'bcErr' : '', role: opts.error ? 'alert' : 'status', text: msg }));
+    gate.appendChild(box);
+    return box;
+  }
+  function closeGate() { if (gate) { gate.hidden = true; gate.textContent = ''; } }
+
+  function wait(box, label) {
+    return new Promise(function (resolve) {
+      var b = node('button', { type: 'button', text: label });
+      b.addEventListener('click', function () { resolve(); });
+      box.appendChild(b);
+      b.focus();
+    });
+  }
+
+  // Shows the passcode box until a sign-in works. Resolves with nothing.
+  function loginLoop(intro, firstError) {
+    return new Promise(function (resolve) {
+      var error = firstError || '';
+      (function show() {
+        var box = openGate('Enter the team passcode', error || intro, { error: !!error });
+        var form = node('form', { autocomplete: 'on' });
+        form.appendChild(node('input', { 'class': 'bcUser', type: 'text', name: 'username', autocomplete: 'username', value: 'batcave', tabindex: '-1', 'aria-hidden': 'true' }));
+        form.appendChild(node('label', { 'for': 'bcPass', text: 'Passcode' }));
+        var pass = node('input', { id: 'bcPass', type: 'password', name: 'password', autocomplete: 'current-password', required: 'required' });
+        form.appendChild(pass);
+        var go = node('button', { type: 'submit', text: 'Open the composer' });
+        form.appendChild(go);
+        box.appendChild(form);
+        pass.focus();
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var code = pass.value;
+          if (!code.trim()) return;
+          go.disabled = true; go.textContent = 'Checking...';
+          fetch(API + '/login', {
+            method: 'POST', credentials: 'same-origin', cache: 'no-store',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ passcode: code })
+          }).then(function (r) {
+            if (r.ok) { closeGate(); resolve(); return; }
+            if (r.status === 401) error = 'That passcode did not work. Try again.';
+            else if (r.status === 429) error = 'Too many tries. Wait a few minutes, then try again.';
+            else if (r.status === 503) error = 'This site is not set up yet. Jacob needs to add the passcode in Netlify.';
+            else error = 'Something went wrong (' + r.status + '). Try again.';
+            show();
+          }).catch(function () {
+            error = 'Could not reach the server. Check the connection and try again.';
+            show();
+          });
+        });
+      })();
+    });
+  }
+
+  /* ---------- session ---------- */
+  async function checkSession() {
+    openGate('Checking sign-in...', '');
+    for (;;) {
+      var r;
+      try { r = await fetch(API + '/session', { credentials: 'same-origin', cache: 'no-store' }); }
+      catch (e) { await wait(openGate('Cannot reach the server', 'Check the connection, then try again.', { error: true }), 'Try again'); openGate('Checking sign-in...', ''); continue; }
+      if (r.ok) { closeGate(); return; }
+      if (r.status === 401) { await loginLoop('Everyone on the team uses the same passcode.'); return; }
+      if (r.status === 503) { await wait(openGate('Not set up yet', 'Jacob needs to add the passcode in Netlify, then redeploy.', { error: true }), 'Try again'); openGate('Checking sign-in...', ''); continue; }
+      await wait(openGate('Something went wrong', 'The server answered ' + r.status + '.', { error: true }), 'Try again');
+      openGate('Checking sign-in...', '');
+    }
+  }
+  function ensureSession() {
+    if (!sessionP) sessionP = checkSession().then(addTools);
+    return sessionP;
+  }
+  function relogin() {
+    if (!reloginP) {
+      reloginP = loginLoop('Your sign-in ended. Enter the passcode to pick up where you left off. Your draft is still open and will save once you are back in.')
+        .then(function () { reloginP = null; }, function () { reloginP = null; });
+    }
+    return reloginP;
+  }
+
+  /* ---------- calls ---------- */
+  function codeFor(status) {
+    if (status === 401) return 'unauthenticated';
+    if (status === 403) return 'forbidden';
+    if (status === 404) return 'not-found';
+    if (status === 413) return 'too-large';
+    if (status === 429) return 'rate-limited';
+    return status >= 500 ? 'server' : 'error';
+  }
+  async function call(method, path, body) {
+    if (frozen && method !== 'GET') return { ok: true };
+    var text = body === undefined ? undefined : JSON.stringify(body);
+    var small = text !== undefined && new TextEncoder().encode(text).length < 30000;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var res;
+      try {
+        res = await fetch(path, {
+          method: method, credentials: 'same-origin', cache: 'no-store',
+          headers: text === undefined ? {} : { 'content-type': 'application/json' },
+          body: text,
+          keepalive: small
+        });
+      } catch (e) { var ne = new Error('network'); ne.code = 'network'; throw ne; }
+      if (res.status === 401 && attempt === 0) { await relogin(); continue; }
+      if (!res.ok) { var he = new Error('http ' + res.status); he.code = codeFor(res.status); throw he; }
+      return res.json();
+    }
+  }
+  function track(p) { inflight.add(p); var done = function () { inflight.delete(p); }; p.then(done, done); return p; }
+
+  /* ---------- db: only the pieces the composer uses ---------- */
+  function parsePath(p) {
+    var m = /^([a-z]+)\/([A-Za-z0-9_-]{1,80})$/.exec(p);
+    if (!m) throw new Error('bad path: ' + p);
+    return { c: m[1], id: m[2] };
+  }
+  function docSnap(id, exists, data) {
+    return { id: id, exists: exists, data: function () { return exists ? data : undefined; }, metadata: {} };
+  }
+  var db = {
+    doc: function (p) {
+      var q = parsePath(p);
+      var base = API + '/db/' + q.c + '/' + encodeURIComponent(q.id);
+      return {
+        id: q.id, path: p,
+        get: function () { return call('GET', base).then(function (r) { return docSnap(q.id, !!r.exists, r.data); }); },
+        set: function (d) { return track(call('PUT', base, d).then(function () { return undefined; })); },
+        delete: function () { return track(call('DELETE', base).then(function () { return undefined; })); }
+      };
+    },
+    collection: function (c) {
+      return {
+        get: function () {
+          return call('GET', API + '/db/' + encodeURIComponent(c)).then(function (r) {
+            var docs = r.docs.map(function (d) { return docSnap(d.id, true, d.data); });
+            return { docs: docs, size: docs.length, empty: docs.length === 0, metadata: {}, docChanges: function () { return []; } };
+          });
+        }
+      };
+    }
+  };
+
+  /* ---------- downloads ---------- */
+  var downloads = {
+    save: function (o) {
+      return new Promise(function (resolve, reject) {
+        try {
+          var blob = new Blob([o.data], { type: o.type || 'text/html;charset=utf-8' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = o.filename || 'download.html';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+          resolve();
+        } catch (e) { reject(e); }
+      });
+    }
+  };
+
+  /* ---------- sign out, back up and restore ---------- */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  async function drain() {
+    for (var i = 0; i < 6; i++) {
+      if (!inflight.size) { await sleep(80); if (!inflight.size) return; }
+      await Promise.all(Array.from(inflight).map(function (p) { return p.catch(function () {}); }));
+    }
+  }
+  function dayStamp() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function addTools() {
+    var bar = document.querySelector('.top');
+    var rail = document.querySelector('.rail');
+    if (!bar || !rail || document.getElementById('bcSignOut')) return;
+
+    // Tabs: Newsletter and Blog posts. Leaving a page saves it first.
+    var brand = bar.querySelector('.brand');
+    var tabs = node('nav', { 'class': 'bcTabs', id: 'bcTabs', 'aria-label': 'Composers' });
+    [['news', '/', 'Newsletter'], ['posts', '/posts', 'Blog posts']].forEach(function (t) {
+      var a = node('a', { href: t[1], id: 'bcTab-' + t[0], text: t[2] });
+      if (t[0] === PAGE) a.setAttribute('aria-current', 'page');
+      a.addEventListener('click', async function (e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        if (t[0] === PAGE) return;
+        a.style.opacity = '.6';
+        try { window.dispatchEvent(new Event('pagehide')); await drain(); } catch (err) {}
+        location.href = t[1];
+      });
+      tabs.appendChild(a);
+    });
+    if (brand && brand.nextSibling) bar.insertBefore(tabs, brand.nextSibling); else bar.appendChild(tabs);
+
+    var out = node('button', { 'class': 'btn sm ghost', id: 'bcSignOut', type: 'button', text: 'Sign out' });
+    out.addEventListener('click', async function () {
+      out.disabled = true;
+      try { window.dispatchEvent(new Event('pagehide')); await drain(); } catch (e) {}
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'same-origin', cache: 'no-store' }); } catch (e) {}
+      location.reload();
+    });
+    bar.appendChild(out);
+
+    var status = node('p', { 'class': 'hint', id: 'bcToolsMsg', role: 'status', style: 'margin:8px 0 0' });
+    var say = function (t) { status.textContent = t; };
+    var backup = node('button', { 'class': 'btn sm', id: 'bcBackup', type: 'button', text: 'Back up all drafts' });
+    var restore = node('button', { 'class': 'btn sm', id: 'bcRestore', type: 'button', text: 'Restore from backup' });
+    var file = node('input', { id: 'bcFile', type: 'file', accept: 'application/json,.json', hidden: 'hidden' });
+
+    backup.addEventListener('click', async function () {
+      say('Collecting every draft...');
+      try {
+        var r = await call('GET', API + '/export');
+        await downloads.save({ filename: 'batcave-composer-backup-' + dayStamp() + '.json', data: JSON.stringify(r, null, 1), type: 'application/json' });
+        say('Backup saved to your downloads.');
+      } catch (e) { say('Could not make a backup (' + (e && e.code || 'error') + ').'); }
+    });
+    restore.addEventListener('click', function () { file.value = ''; file.click(); });
+    file.addEventListener('change', async function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      var parsed;
+      try { parsed = JSON.parse(await f.text()); } catch (e) { say('That file is not a backup.'); return; }
+      var cols = parsed && parsed.collections;
+      if (!cols || typeof cols !== 'object') { say('That file is not a composer backup.'); return; }
+      var ni = cols.issues ? Object.keys(cols.issues).length : 0;
+      var np = cols.posts ? Object.keys(cols.posts).length : 0;
+      var parts = [];
+      if (ni) parts.push(ni + ' newsletter issue' + (ni === 1 ? '' : 's'));
+      if (np) parts.push(np + ' blog post' + (np === 1 ? '' : 's'));
+      var what = parts.length ? parts.join(' and ') : 'the saved settings';
+      if (!window.confirm('Restore ' + what + ' from this backup? Anything with the same ID is replaced by the backup version.')) { say('Nothing changed.'); return; }
+      say('Restoring...');
+      try {
+        var r = await call('POST', API + '/import', parsed);
+        frozen = true;
+        say('Restored ' + r.written + ' items. Reloading...');
+        setTimeout(function () { location.reload(); }, 600);
+      } catch (e) { say('Could not restore (' + (e && e.code || 'error') + ').'); }
+    });
+
+    var card = node('div', { 'class': 'card', id: 'bcTools' }, [
+      node('h2', { text: 'Your drafts' }),
+      node('p', { 'class': 'hint', text: 'Drafts are kept on this site and shared by everyone with the passcode. If two people edit the same issue or post at once, the later save wins. One backup file holds the newsletters and the blog posts together.' }),
+      node('div', { style: 'display:flex;flex-wrap:wrap;gap:6px' }, [backup, restore, file]),
+      status
+    ]);
+    rail.appendChild(card);
+  }
+
+  window.claude = {
+    use: async function (name) {
+      if (name === 'db') { await ensureSession(); return db; }
+      if (name === 'downloads') return downloads;
+      return null;
+    }
+  };
+})();
+
+</script>
+<script>
+/* ---------- the kinds of post ---------- */
+const TYPES = {
+  guide:  {label:'Guide',  tag:'Guides',  target:1000, lo:1000, hi:Infinity, floor:true, noPrices:true,
+    blurb:'1,000 words or more. Turns a first visit into a second and ends at a named night. No prices, so it does not go stale.',
+    hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
+  short:  {label:'Short post', tag:'News', target:500, lo:350, hi:650,
+    blurb:'About 500 words. A quick how-to, a restock alert, a roundup.',
+    hint:'About 500 words.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
+  staff:  {label:'Staff pick', tag:'Staff Picks', target:300, lo:120, hi:500,
+    blurb:'A staff member\'s pick, in their words, or Jacob\'s with their okay. Short.',
+    hint:'Written both ways: by the staff member, or by Jacob with their okay. A quote needs the staff member\'s okay.',
+    byline:'By the staff member: put their name. By Jacob: put Jacob Clifton. Set Shopify\'s own Author box to the same name.'},
+  news:   {label:'Release or event news', tag:'News', target:400, lo:150, hi:600,
+    blurb:'What is coming and when.',
+    hint:'Mark any date you have not confirmed as "date unconfirmed".', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'}
+};
+const TYPE_ORDER = ['guide','short','staff','news'];
+const CREW = 'The Bat City Crew';   // the default byline for guides, short posts and news (Jacob, Nov 5)
+const COLUMNS = {   // the two Batcave columns (Nov 8). A column is a tag plus a theme template; the tag comes first in the tag list.
+  spoiler:{label:'Spoiler Alert',     tag:'Spoiler Alert',     tpl:'spoiler-alert', file:'article.spoiler-alert', hint:'This post gives away the ending. The theme prints a warning strip under the title.'},
+  book:   {label:'Batcave Book Club', tag:'Batcave Book Club', tpl:'book-club',     file:'article.book-club',     hint:'Pull quotes get an "Our take" tab. First Read or Reread shows in a banner under the title.'}
+};
+const READS = ['First Read','Reread'];
+const COL_TAGS = new Set(['spoiler alert','batcave book club','first read','reread']);
+const OLD_CREW = 'Bat City Games & Comics Crew';   // the earlier default; drafts saved with it are moved over on load
+
+const SCAFFOLD = {
+guide:
+`<p>[Lede. One or two sentences: who this guide is for and what they will be able to do by the end. Start with the reader, not the game.]</p>
+<h2>[What it is, in plain words]</h2>
+<p>[Two or three short paragraphs. Say what the thing is, what a session looks like, and why people love it. Translate any jargon in one line.]</p>
+<h2>[What you need]</h2>
+<p>[What to bring and what the shop has on hand. Name the things. Leave prices out so this does not go stale.]</p>
+<h2>Your first visit</h2>
+<ol>
+<li><strong>[Step one headline.]</strong> [One or two sentences. Where to go and who to ask at the counter.]</li>
+<li><strong>[Step two headline.]</strong> [One or two sentences.]</li>
+<li><strong>[Step three headline.]</strong> [One or two sentences.]</li>
+</ol>
+<blockquote><p>[One line worth reading twice. A pull quote.]</p></blockquote>
+<h2>[What newcomers ask or get wrong]</h2>
+<p>[Two or three short paragraphs. Answer the real questions kindly. No gatekeeping.]</p>
+<h2>[Where to go next]</h2>
+<p>[Close by pointing at the named night below. Tell the reader exactly what to say when they walk in.]</p>`,
+short:
+`<p>[Lede. What happened or what is new, in one or two sentences.]</p>
+<h2>[Section heading, optional]</h2>
+<p>[Two short paragraphs. The detail someone would ask about at the counter.]</p>
+<p>[Close with the next step: a named night, a release date you have confirmed, or a pull list nudge.]</p>`,
+staff:
+`<p>[Staff name] picks [title]. [One sentence on why it is on their personal shelf.]</p>
+<p>[In their own words: what hooked them, in two or three sentences. Keep their phrasing.]</p>
+<blockquote><p>[A line they said, exactly as they said it. Needs their okay.]</p></blockquote>
+<p>[Who to hand it to, and where it sits in the shop.]</p>`,
+news:
+`<p>[Lede. What is happening, and when. If a date is not confirmed, say "date unconfirmed".]</p>
+<h2>[What to expect at the shop]</h2>
+<p>[The details a regular would ask for: what it is, which night, what to bring.]</p>
+<p>[How to be ready: a pull list nudge, a named night, or a restock alert.]</p>`
+};
+
+const NIGHTS = [
+  {day:'MON', name:'Warhammer Night',                  time:'6 to 10 PM',  link:'https://batcitygc.com/pages/warhammer-night'},
+  {day:'MON', name:'Riftbound Nexus Night',            time:'6 to 10 PM',  link:'https://batcitygc.com/pages/riftbound-nexus-night'},
+  {day:'TUE', name:'Role Playing Night',               time:'6 to 10 PM',  link:'https://batcitygc.com/pages/role-playing-night'},
+  {day:'WED', name:'New Comics Day',                   time:'10 AM to 10 PM', link:'https://batcitygc.com/blogs/batcave/wednesday-at-the-shop'},
+  {day:'WED', name:'Commander Night',                  time:'6 to 10 PM',  link:'https://batcitygc.com/pages/commander-night'},
+  {day:'THU', name:'Sorcery Night',                    time:'6 to 10 PM',  link:'https://batcitygc.com/pages/sorcery-night'},
+  {day:'FRI', name:'Star Wars: Unlimited Night',       time:'6 to 10 PM',  link:'https://batcitygc.com/pages/star-wars-unlimited-night'},
+  {day:'FRI', name:'Flesh and Blood Night',            time:'6 to 10 PM',  link:'https://batcitygc.com/pages/flesh-and-blood-night'},
+  {day:'FRI', name:'Open Seat Board Game Night',       time:'6 to 10 PM',  link:'https://batcitygc.com/pages/open-seat-board-games-night'},
+  {day:'SAT', name:'Board Games Night',                time:'6 to 10 PM',  link:'https://batcitygc.com/pages/board-games-night'},
+  {day:'SUN', name:'Bat City Magic Club',              time:'10 AM to 2 PM', link:'https://batcitygc.com/pages/bat-city-magic-club-ages-8-16'},
+  {day:'SUN', name:'Pokémon Open Play',                time:'2 to 4 PM',   link:'https://batcitygc.com/pages/pokemon-open-play'}
+];
+const NIGHT_DAYS = {MON:'Monday',TUE:'Tuesday',WED:'Wednesday',THU:'Thursday',FRI:'Friday',SAT:'Saturday',SUN:'Sunday'};
+const TAG_SUGGEST = ['Guides','Staff Picks','News','Events','Pull List','New Releases'];
+
+const CONFIRMS = {
+  guide:  [['facts','Every title, date and quote is real and checked against a source I opened']],
+  short:  [['facts','Every title, date and quote is real and checked against a source I opened (or marked "date unconfirmed")']],
+  staff:  [['okay','The staff member has OK\'d this, including any quote']],
+  news:   [['facts','Every date is confirmed against a publisher, distributor or organizer page (or marked "date unconfirmed")']]
+};
+
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const uid = () => Math.random().toString(36).slice(2,8);
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+function setSave(msg,bad){ const s=$('#saveState'); s.textContent=msg; s.classList.toggle('bad',!!bad); }
+function getP(o,p){ return p.split('.').reduce((a,k)=>a==null?a:a[k],o); }
+function setP(o,p,v){ const ks=p.split('.'), last=ks.pop(); ks.reduce((a,k)=>a[k],o)[last]=v; }
+function shortDate(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function autosize(el){ el.style.height='auto'; el.style.height=(el.scrollHeight+2)+'px'; }
+
+/* ---------- state ---------- */
+let S = null;                 // the open post: {id,type,created,title,excerpt,tags,byline,alt,seoTitle,seoDesc,handle,night:{},body,confirm:{},updatedAt}
+let index = [];               // [{id,name,type,updatedAt}]
+let db = null;
+let dirty = false, saveTimer = 0, syncTimer = 0, checkTimer = 0, phTimer = 0;
+let savedRange = null, ctxMode = null, ctxEl = null;
+let ed = null;
+
+function blankDoc(type){
+  const t = TYPES[type];
+  return {
+    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'', column:'', read:'',
+    night:{on:type==='guide', day:'', name:'', time:'', blurb:'', link:''},
+    body:SCAFFOLD[type], confirm:{}, updatedAt:new Date().toISOString()
+  };
+}
+function mergeDoc(d){
+  // A draft saved as a capsule review (not a blog post any more) opens as a short post; its card answers are not carried over.
+  const type = TYPES[d.type] ? d.type : 'short';
+  const b = blankDoc(type);
+  const o = Object.assign(b, d);
+  o.type = type; delete o.cap;
+  o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
+  o.body = typeof d.body === 'string' ? d.body : '';
+  o.column = COLUMNS[o.column]? o.column : ''; o.read = (o.column==='book' && READS.indexOf(o.read)>=0)? o.read : '';   // drafts from before the columns open with none
+  if((o.byline||'').trim()===OLD_CREW) o.byline = TYPES[type].crew? CREW : '';   // the earlier default byline becomes the new one
+  return o;
+}
+function stripDoc(s){ const o = Object.assign({}, s); delete o.id; return o; }
+function postName(s){ return (s.title||'').trim() || (TYPES[s.type].label+' draft, '+shortDate(new Date(s.created||Date.now()))); }
+const nightOn = () => !!S && (S.type==='guide' || !!S.night.on);
+// What readers see, and what the Author box in Shopify should say: the typed byline, else The Bat City Crew (guide, short post, news)
+function effByline(){ const b=(S.byline||'').trim(); if(b) return b; return TYPES[S.type].crew? CREW : ''; }
+
+/* ---------- body: clean HTML in, clean HTML out ---------- */
+const BLOCK_TAGS = new Set(['P','DIV','H1','H2','H3','H4','H5','H6','UL','OL','BLOCKQUOTE','HR','TABLE','SECTION','ARTICLE','FIGURE','PRE','HEADER','FOOTER']);
+const escT = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const escA = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function okHref(h){ h=(h||'').trim(); return /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(h) ? h : ''; }
+function okSrc(h){ h=(h||'').trim(); return /^(https:\/\/|\/(?!\/))/i.test(h) ? h : ''; }
+function inl(n){
+  if(n.nodeType===3) return escT(n.nodeValue.replace(/ /g,' ').replace(/[ \t\r\n]+/g,' '));
+  if(n.nodeType!==1) return '';
+  const kids = () => Array.from(n.childNodes).map(inl).join('');
+  switch(n.tagName){
+    case 'B': case 'STRONG': { const k=kids(); return k.trim()? '<strong>'+k+'</strong>' : k; }
+    case 'I': case 'EM': { const k=kids(); return k.trim()? '<em>'+k+'</em>' : k; }
+    case 'A': { const h=okHref(n.getAttribute('href')), k=kids(); return h&&k.trim()? '<a href="'+escA(h)+'">'+k+'</a>' : k; }
+    case 'SPAN': { const k=kids(); return n.classList.contains('bc-redact') && k.trim()? '<span class="bc-redact" tabindex="0">'+k+'</span>' : k; }   // redaction bars (column posts); any other span is dropped
+    case 'BR': return '<br>';
+    case 'IMG': { const s=okSrc(n.getAttribute('src')); return s? '<img src="'+escA(s)+'" alt="'+escA((n.getAttribute('alt')||'').trim())+'">' : ''; }
+    default: return kids();
+  }
+}
+function tidyInline(s){ return s.replace(/^(\s|<br>)+/,'').replace(/(\s|<br>)+$/,'').replace(/ {2,}/g,' ').replace(/ ?<br> ?/g,'<br>'); }
+function blockOf(el){
+  const t = el.tagName;
+  if(t==='H1'||t==='H2') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h2>'+c+'</h2>' : ''; }
+  if(/^H[3-6]$/.test(t)) { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h3>'+c+'</h3>' : ''; }
+  if(t==='UL'||t==='OL'){
+    const items=[];
+    el.childNodes.forEach(li=>{
+      if(li.nodeType!==1) return;
+      let c;
+      if(li.tagName==='LI'){
+        const parts=[]; let run='';
+        li.childNodes.forEach(k=>{ if(k.nodeType===1 && BLOCK_TAGS.has(k.tagName)){ if(run.trim()) parts.push(run); run=''; parts.push(Array.from(k.childNodes).map(inl).join('')); } else run+=inl(k); });
+        if(run.trim()) parts.push(run);
+        c=tidyInline(parts.map(tidyInline).filter(Boolean).join(' '));
+      } else c=tidyInline(inl(li));
+      if(c.replace(/<br>/g,'').trim()) items.push('<li>'+c+'</li>');
+    });
+    const tag=t.toLowerCase();
+    return items.length? '<'+tag+'>\n'+items.join('\n')+'\n</'+tag+'>' : '';
+  }
+  if(t==='BLOCKQUOTE'){
+    const inner = serializeRoot(el);
+    return inner? '<blockquote>\n'+inner+'\n</blockquote>' : '';
+  }
+  if(t==='HR') return '<hr>';
+  if(t==='P') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return (c.replace(/<br>/g,'').trim()||/<img/.test(c))? '<p>'+c+'</p>' : ''; }
+  return serializeRoot(el);   // DIV, TABLE, SECTION and the rest: keep the content, drop the wrapper
+}
+function serializeRoot(root){
+  const out=[]; let run='';
+  const flushRun=()=>{ const c=tidyInline(run); if(c.replace(/<br>/g,'').trim()||/<img/.test(c)) out.push('<p>'+c+'</p>'); run=''; };
+  root.childNodes.forEach(n=>{
+    if(n.nodeType===1 && BLOCK_TAGS.has(n.tagName)){ flushRun(); const s=blockOf(n); if(s) out.push(s); }
+    else run+=inl(n);
+  });
+  flushRun();
+  return out.join('\n');
+}
+function cleanHtml(html){
+  const d=new DOMParser().parseFromString('<body>'+html+'</body>','text/html');
+  return serializeRoot(d.body);
+}
+function textFromHtml(html){
+  const spaced=html.replace(/<\/(p|h2|h3|li|blockquote|ul|ol)>|<br\s*\/?>/gi,' ');
+  return new DOMParser().parseFromString('<body>'+spaced+'</body>','text/html').body.textContent.replace(/\s+/g,' ').trim();
+}
+function wordCount(text){ const t=text.replace(/\[[^\]]*\]/g,' ').trim(); return t? t.split(/\s+/).length : 0; }
+
+/* ---------- body sync ---------- */
+function syncBody(){
+  if(!S||!ed) return false;
+  const h=cleanHtml(ed.innerHTML);
+  if(h===S.body) return false;
+  S.body=h; return true;
+}
+function onBodyInput(){
+  if(!ed.firstChild || (ed.children.length===1 && ed.firstElementChild.tagName==='BR')) ed.innerHTML='<p><br></p>';
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>{ if(syncBody()) scheduleSave(); scheduleRefresh(); schedulePaint(); },300);
+}
+
+/* ---------- prompts: [bracketed] text ---------- */
+function phRanges(){
+  const out=[]; if(!ed) return out;
+  const w=document.createTreeWalker(ed,NodeFilter.SHOW_TEXT); let n;
+  while((n=w.nextNode())){
+    const re=/\[[^\]\n]{1,300}\]/g; let m;
+    while((m=re.exec(n.nodeValue))){ const r=document.createRange(); r.setStart(n,m.index); r.setEnd(n,m.index+m[0].length); out.push(r); }
+  }
+  return out;
+}
+function paintPrompts(){ try{ if(!window.CSS||!CSS.highlights||!window.Highlight) return; CSS.highlights.set('bc-ph', new Highlight(...phRanges())); }catch(e){} }
+function schedulePaint(){ clearTimeout(phTimer); phTimer=setTimeout(paintPrompts,200); }
+function gotoPrompt(dir){
+  const rs=phRanges(); if(!rs.length){ toast('No prompts left in the post'); return; }
+  const s=getSelection(); let pick=null;
+  if(s.rangeCount && ed.contains(s.anchorNode)){
+    const cur=s.getRangeAt(0);
+    if(dir>0){ const min=cur.collapsed? 0 : 1; pick=rs.find(r=>r.compareBoundaryPoints(Range.START_TO_START,cur)>=min); }
+    else { for(let i=rs.length-1;i>=0;i--){ if(rs[i].compareBoundaryPoints(Range.START_TO_START,cur)<0){ pick=rs[i]; break; } } }
+  }
+  if(!pick) pick = dir>0 ? rs[0] : rs[rs.length-1];
+  ed.focus({preventScroll:true});
+  s.removeAllRanges(); s.addRange(pick);
+  const el=pick.startContainer.parentElement; if(el) el.scrollIntoView({block:'center',behavior:'smooth'});
+}
+function promptCount(){
+  const t = textFromHtml(S.body)+' '+S.title+' '+S.excerpt;
+  const m=t.match(/\[[^\]\n]{1,300}\]/g); return m? m.length : 0;
+}
+
+/* ---------- formatting ---------- */
+function inEd(){ const s=getSelection(); return !!(s&&s.rangeCount&&ed.contains(s.anchorNode)); }
+function needEd(){ if(inEd()) return true; if(savedRange){ ed.focus({preventScroll:true}); const s=getSelection(); s.removeAllRanges(); s.addRange(savedRange); return true; } toast('Click in the post text first'); return false; }
+function topBlock(){
+  const s=getSelection(); if(!s.rangeCount) return null;
+  let n=s.anchorNode; while(n && n.parentNode!==ed) n=n.parentNode;
+  return n && n.nodeType===1 ? n : null;
+}
+function fmt(cmd){ if(!needEd()) return; document.execCommand(cmd); onBodyInput(); updateTools(); }
+/* Lists and quotes are done by hand: the browser's own list command nests a list inside a paragraph and
+   throws the caret to the start of the line. These keep the caret where it was. */
+function topOf(n,off,end){
+  if(n===ed){ const kids=ed.childNodes; if(!kids.length) return null; return kids[end? Math.max(0,Math.min(off,kids.length)-1) : Math.min(off,kids.length-1)]; }
+  while(n && n.parentNode!==ed) n=n.parentNode;
+  return n||null;
+}
+function selectedBlocks(){
+  const s=getSelection(); if(!s.rangeCount) return [];
+  const r=s.getRangeAt(0);
+  const a=topOf(r.startContainer,r.startOffset,false); let z=topOf(r.endContainer,r.endOffset,true);
+  if(!a||!z) return [];
+  // a selection that stops at the very start of the next block does not include that block
+  if(!r.collapsed && r.endOffset===0 && z!==a && (r.endContainer===z || z.firstChild===r.endContainer) && z.previousSibling) z=z.previousSibling;
+  const out=[]; for(let n=a;n;n=n.nextSibling){ out.push(n); if(n===z) break; }
+  return out;
+}
+function saveSel(){ const s=getSelection(); return s.rangeCount? [s.anchorNode,s.anchorOffset,s.focusNode,s.focusOffset] : null; }
+function restoreSel(keep,map){
+  if(!keep||!keep[0]) return;
+  const m=n=>(map&&map.get(n))||n;
+  try{ getSelection().setBaseAndExtent(m(keep[0]),keep[1],m(keep[2]),keep[3]); }catch(e){}
+}
+const PLAIN_BLOCK=/^(P|DIV|H1|H2|H3|H4|H5|H6)$/;
+function makeList(tag){
+  const blocks=selectedBlocks(); if(!blocks.length) return;
+  const keep=saveSel(), map=new Map();
+  const one=blocks.length===1 && blocks[0].nodeType===1 ? blocks[0] : null;
+  if(one && one.tagName===tag){                       // already this kind of list: back to paragraphs
+    Array.from(one.children).forEach(li=>{ const p=document.createElement('p'); while(li.firstChild) p.appendChild(li.firstChild); map.set(li,p); one.before(p); });
+    one.remove();
+  } else if(one && (one.tagName==='OL'||one.tagName==='UL')){   // the other kind of list: swap the type
+    const nu=document.createElement(tag.toLowerCase()); while(one.firstChild) nu.appendChild(one.firstChild);
+    map.set(one,nu); one.replaceWith(nu);
+  } else {
+    let list=null;
+    blocks.forEach(blk=>{
+      const plain = blk.nodeType===3 || (blk.nodeType===1 && PLAIN_BLOCK.test(blk.tagName));
+      if(!plain){ list=null; return; }
+      if(!list){ list=document.createElement(tag.toLowerCase()); blk.before(list); }
+      const li=document.createElement('li');
+      if(blk.nodeType===3){ li.appendChild(blk); } else { while(blk.firstChild) li.appendChild(blk.firstChild); map.set(blk,li); blk.remove(); }
+      list.appendChild(li);
+    });
+  }
+  restoreSel(keep,map);
+}
+function toggleQuote(){
+  const blocks=selectedBlocks(); if(!blocks.length) return;
+  const keep=saveSel();
+  if(blocks.length===1 && blocks[0].nodeType===1 && blocks[0].tagName==='BLOCKQUOTE'){
+    const bq=blocks[0]; while(bq.firstChild) bq.before(bq.firstChild); bq.remove();
+  } else {
+    const bq=document.createElement('blockquote'); blocks[0].before(bq);
+    blocks.forEach(b=>{
+      if(b.nodeType===3){ const p=document.createElement('p'); p.appendChild(b); bq.appendChild(p); }
+      else bq.appendChild(b);
+    });
+  }
+  restoreSel(keep,null);
+}
+function setBlock(tag){
+  if(!needEd()) return;
+  const tb=topBlock(), cur=tb?tb.tagName:'P';
+  if(tag==='BLOCKQUOTE') toggleQuote();
+  else if(tag==='OL'||tag==='UL') makeList(tag);
+  else document.execCommand('formatBlock',false, cur===tag ? '<p>' : '<'+tag.toLowerCase()+'>');
+  onBodyInput(); updateTools();
+}
+function updateTools(){
+  if(!S) return;
+  const tb = inEd()? topBlock() : null, t = tb? tb.tagName : '';
+  const set=(id,on)=>$('#'+id).setAttribute('aria-pressed',String(!!on));
+  set('tH2',t==='H2'); set('tH3',t==='H3'); set('tOL',t==='OL'); set('tUL',t==='UL'); set('tQ',t==='BLOCKQUOTE');
+  let b=false,i=false; try{ if(inEd()){ b=document.queryCommandState('bold'); i=document.queryCommandState('italic'); } }catch(e){}
+  set('tB',b); set('tI',i);
+}
+
+/* ---------- link and picture bar ---------- */
+function normUrl(v){
+  v=(v||'').trim(); if(!v) return '';
+  if(okHref(v)) return v;
+  if(/^[\w-]+(\.[\w-]+)+(\/|$)/.test(v)) return 'https://'+v;
+  return '';
+}
+function setCtx(mode,el){
+  ctxMode=mode; ctxEl=el||null; const c=$('#ctx');
+  if(!mode){ c.hidden=true; c.innerHTML=''; return; }
+  c.hidden=false;
+  if(mode==='link'||mode==='newlink'){
+    c.innerHTML='<span class="t">Link</span><input id="ctxUrl" type="text" aria-label="Link address" placeholder="https://... or /pages/..."><button class="btn sm primary" id="ctxOk" type="button">Apply</button>'+(mode==='link'?'<button class="btn sm" id="ctxDel" type="button">Remove link</button>':'')+'<button class="btn sm ghost" id="ctxX" type="button">Close</button><span class="hint" id="ctxMsg" role="status"></span>';
+    $('#ctxUrl').value = el? (el.getAttribute('href')||'') : '';
+    $('#ctxOk').onclick=()=>{
+      const v=normUrl($('#ctxUrl').value); if(!v){ $('#ctxMsg').textContent='Use a web address that starts with https://, or a path that starts with /'; return; }
+      if(mode==='link'){ el.setAttribute('href',v); }
+      else {
+        if(!savedRange || savedRange.collapsed){ $('#ctxMsg').textContent='Select some text in the post first, then press Link.'; return; }
+        ed.focus({preventScroll:true}); const s=getSelection(); s.removeAllRanges(); s.addRange(savedRange);
+        document.execCommand('createLink',false,v);
+      }
+      onBodyInput(); setCtx(null);
+    };
+    if(mode==='link') $('#ctxDel').onclick=()=>{ const p=el.parentNode; while(el.firstChild) p.insertBefore(el.firstChild,el); el.remove(); onBodyInput(); setCtx(null); };
+    $('#ctxUrl').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#ctxOk').click(); } });
+    $('#ctxUrl').focus();
+  } else {
+    const isNew = mode==='newimg';
+    c.innerHTML='<span class="t">Picture</span><input id="ctxSrc" type="text" aria-label="Picture web address" placeholder="https://cdn.shopify.com/..."><input id="ctxAlt" type="text" aria-label="Picture description" placeholder="Describe the picture in a short sentence" style="flex:1 1 240px"><button class="btn sm primary" id="ctxOk" type="button">'+(isNew?'Insert':'Apply')+'</button>'+(isNew?'':'<button class="btn sm" id="ctxDel" type="button">Remove picture</button>')+'<button class="btn sm ghost" id="ctxX" type="button">Close</button><span class="hint" id="ctxMsg" role="status">Upload the picture in Shopify (Content, Files), copy its link, paste it here.</span>';
+    if(el){ $('#ctxSrc').value=el.getAttribute('src')||''; $('#ctxAlt').value=el.getAttribute('alt')||''; }
+    $('#ctxOk').onclick=()=>{
+      const src=okSrc($('#ctxSrc').value); if(!src){ $('#ctxMsg').textContent='The picture address must start with https://'; return; }
+      const alt=$('#ctxAlt').value.trim();
+      if(isNew){
+        ed.focus({preventScroll:true}); const s=getSelection(); s.removeAllRanges(); if(savedRange) s.addRange(savedRange); else { const r=document.createRange(); r.selectNodeContents(ed); r.collapse(false); s.addRange(r); }
+        document.execCommand('insertHTML',false,'<img src="'+escA(src)+'" alt="'+escA(alt)+'">');
+      } else { el.setAttribute('src',src); el.setAttribute('alt',alt); }
+      onBodyInput(); setCtx(null);
+    };
+    if(!isNew) $('#ctxDel').onclick=()=>{ el.remove(); onBodyInput(); setCtx(null); };
+    $('#ctxSrc').focus();
+  }
+  $('#ctxX').onclick=()=>setCtx(null);
+}
+
+/* ---------- rules and checks ---------- */
+const MONTH='(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+const R = {
+  date:  new RegExp('\\b'+MONTH+'\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?\\b','g'),
+  price: /\$\s?\d[\d,]*(?:\.\d{2})?|\b\d[\d,]*(?:\.\d{2})?\s*(?:dollars|bucks|USD)\b/gi,
+  promo: /\b\d+\s?%\s?off\b|\bpercent off\b|\bsales?\b|\bdiscounts?\b|\bBOGO\b|\bcoupons?\b|\bpromo(?:tion)?s?\b|\bclearance\b/gi,
+  stock: /\b(ensure|leverage|delve|unlock)\b/gi,
+  avoid: /\b(patrons?|consumers?|foot traffic|filthy casuals?|huge savings|blowouts?|lowest prices? in town)\b/gi,
+  notIts:/\b(?:it'?s|it is|this is|that'?s|that is)\s+not\b[^.!?\n]{0,80}?[,;:]\s*(?:it'?s|it is|but)\b/i,
+  hwy:   /\b(?:Hwy\.?|Hiway|US|U\.S\.)[ -]?290\b/,
+  haven: /\b(reserve your seat|check[- ]?in|rsvp|tickets?)\b/gi,
+  bat:   /\b(bats?|batty|belfry|guano|echolocat\w*|nocturnal|caped|batarang|bat-?signal)\b/gi,
+  minors:/(?:kids|bat city) magic club|youth league|summer camp|ages? \d+ to \d+/i
+};
+function hits(re,text){ const m=text.match(re); return m? Array.from(new Set(m.map(x=>x.trim()))) : []; }
+function quote(a,n){ return a.slice(0,n||2).map(x=>'"'+x+'"').join(', ')+(a.length>(n||2)?' and '+(a.length-(n||2))+' more':''); }
+
+function allText(){
+  const parts=[S.title,S.excerpt,S.byline,S.alt,S.seoTitle,S.seoDesc,textFromHtml(S.body)];
+  if(nightOn()) parts.push(S.night.name,S.night.blurb);
+  return parts.join(' \n ');
+}
+function runChecks(){
+  const T=TYPES[S.type], out=[], ok=k=>!!S.confirm[k];
+  const bodyText=textFromHtml(S.body), text=allText(), words=wordCount(bodyText);
+  const add=(lv,tx)=>out.push([lv,tx]);
+
+  add(S.title.trim()?'ok':'warn', S.title.trim()?'Title is in':'Add a title');
+  add(S.excerpt.trim()?'ok':'warn', S.excerpt.trim()?'Excerpt is in':'Add an excerpt (it shows under the title and on the blog cards)');
+  add(S.tags.trim()?'ok':'warn', S.tags.trim()?'Tags are in':'Add a tag (the first one is the chip above the title)');
+  const pc=promptCount();
+  add(pc?'warn':'ok', pc? pc+' [prompt'+(pc===1?'':'s')+'] left to fill in or delete' : 'No [prompts] left');
+
+  // length
+  add(words>=T.lo && words<=T.hi?'ok':'warn', 'Post is '+words+' words ('+(T.floor ? T.lo.toLocaleString('en-US')+' is the floor, no ceiling' : 'aim for about '+T.target.toLocaleString('en-US'))+')');
+
+  // house rules
+  const bad=[]; { const re=/Bat City(?! Games\s*&\s*Comics| Magic Club| Crew)/g; let m; while((m=re.exec(text.replace(/&amp;/g,'&')))) bad.push(text.slice(Math.max(0,m.index-12),m.index+24).trim()); }
+  add(bad.length?'warn':'ok', bad.length? 'Write Bat City Games & Comics in full: "'+bad[0]+'"'+(bad.length>1?' and '+(bad.length-1)+' more':'') : 'Shop name is written in full');
+  if(R.hwy.test(text)) add('warn','Spell out Highway 290');
+  const flags=[]; if(/—/.test(text)) flags.push('em dash'); const sw=hits(R.stock,text); if(sw.length) flags.push(quote(sw.map(x=>x.toLowerCase()),2)); if(R.notIts.test(text)) flags.push('"it\'s not X, it\'s Y"');
+  add(flags.length?'warn':'ok', flags.length? 'Voice check: '+flags.join(', ') : 'No em dashes or stock words');
+  const av=hits(R.avoid,text); if(av.length) add('warn','House words to avoid: '+quote(av.map(x=>x.toLowerCase()),3));
+  const batText=text.replace(/Bat City Games\s*&\s*Comics|Bat City|The Batcave|Batcave/gi,' ');
+  const bw=hits(R.bat,batText);
+  add(bw.length>1?'warn':'ok', bw.length>1? 'Bat puns: '+bw.length+' ('+bw.map(x=>x.toLowerCase()).join(', ')+'). One per piece, maximum.' : 'Bat puns: '+bw.length+' (one maximum)');
+
+  // prices and promotions
+  const pr=hits(R.price,text), pm=hits(R.promo,text);
+  if(T.noPrices){
+    add(pr.length?'warn':'ok', pr.length? 'Take the price out: '+quote(pr,2)+'. '+'Guides carry no prices so they do not go stale.' : 'No prices');
+  }
+  if((!T.noPrices && pr.length) || pm.length){
+    const found=(T.noPrices?[]:pr).concat(pm);
+    add('info', 'Price or promotion in the text ('+quote(found,2)+'): make sure it is a number or date the shop has given you');
+  }
+
+  // dates
+  const dt=hits(R.date,text);
+  if(dt.length){
+    const dateOk = ok('facts');
+    add(dateOk?'ok':'warn','Dates in the post ('+quote(dt,3)+'): confirm each against a publisher, distributor or organizer page, or write "date unconfirmed"');
+  }
+  // things that must stay out
+  if(/pok[eé]mon/i.test(text) && /pre[- ]?orders?/i.test(text)) add('warn','Pokémon never has pre-orders at the shop');
+  if(/variant/i.test(text) && /auction|box[- ]?holders?/i.test(text)) add('stop','Never publish the weekly variant list or its link. Saying the list exists needs Brendan\'s yes.');
+  if(/magic word|minerva/i.test(text)) add('warn','The Magic Word stays out of everything until Brendan approves the reward and the weekly cap');
+  const gh=hits(R.haven,text); if(gh.length) add('warn','Game Haven Guild is the events calendar only. No check-ins, tickets or "Reserve Your Seat": '+quote(gh,2));
+  if(R.minors.test(text)) add('info','Minors: no recognizable photo, video or name of a minor without a parent\'s signed consent');
+
+  // pictures
+  const imgs=(S.body.match(/<img\b[^>]*>/g)||[]);
+  const noAlt=imgs.filter(i=>!/alt="[^"]+"/.test(i)).length;
+  if(imgs.length) add(noAlt?'warn':'ok', noAlt? noAlt+' picture'+(noAlt===1?'':'s')+' without a description (click the picture)' : imgs.length+' picture'+(imgs.length===1?'':'s')+', all described');
+  add(S.alt.trim()?'ok':'warn', S.alt.trim()?'Featured image has alt text':'Featured image alt text is empty');
+
+  // by kind
+  if(S.type==='guide'){
+    add(S.night.name.trim()?'ok':'warn', S.night.name.trim()? 'Ends at a named night: '+S.night.name : 'A guide should end at a named night (card at the bottom of the post)');
+  }
+  if(S.type==='staff') add(S.byline.trim()?'ok':'warn', S.byline.trim()? 'Signed by '+S.byline.trim() : 'Put the staff member\'s name in the byline (or Jacob Clifton if you wrote it)');
+  if(S.type==='staff' && /<blockquote>/.test(S.body)) add('info','Staff quote: needs the staff member\'s okay');
+
+  // column
+  if(S.column){
+    const col=COLUMNS[S.column], first=firstTag().toLowerCase()===col.tag.toLowerCase();
+    add(first?'ok':'warn', first? 'Column tag is first: '+col.tag : 'The first tag should be '+col.tag+' so the chip and the column page match');
+    if(S.column==='spoiler') add('info','Spoiler Alert: this post may give away the ending. The warning strip under the title says so.');
+    if(S.column==='book') add(S.read?'ok':'info', S.read? 'Banner under the title will say '+S.read : 'Pick First Read or Reread so the banner shows (skip it for an announcement)');
+    add('info','In Shopify, set the theme template to '+col.tpl+'.');
+    if(/jacob/i.test(S.byline) || /\bJacob\b/.test(textFromHtml(S.body))) add('warn','Jacob\'s name stays out of the columns (Nov 8). Use we, or sign it The Bat City Crew.');
+  }
+
+  // search listing
+  if(!S.seoTitle.trim() && S.title.trim().length>60) add('warn','Title is '+S.title.trim().length+' characters. Search results cut off near 60. Add a shorter page title.');
+  if(S.seoTitle.trim().length>60) add('warn','Page title is '+S.seoTitle.trim().length+' characters (about 60 fits)');
+  if(S.seoDesc.trim().length>155) add('warn','Meta description is '+S.seoDesc.trim().length+' characters (about 155 fits)');
+  if(!S.seoDesc.trim()) add('info','No meta description yet. Shopify will pick one from the post.');
+
+  // hand confirmations
+  (CONFIRMS[S.type]||[]).forEach(([k,label])=>{ if(!ok(k)) add('warn','Not yet confirmed: '+label); });
+  add('info','Photos favor cards, boards, miniatures, components and hands in play. Nothing is invented: titles, dates, prices and quotes are real.');
+  return out;
+}
+function pills(list){ return list.map(([lv,tx])=>'<li><span class="pill '+lv+'">'+({ok:'OK',warn:'Check',stop:'Stop',info:'Note'})[lv]+'</span><span>'+esc(tx)+'</span></li>').join(''); }
+
+/* ---------- refresh derived bits ---------- */
+function firstTag(){ return (S.tags.split(',')[0]||'').trim(); }
+function suggestHandle(){
+  let h=(S.title||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  if(h.length>60){ h=h.slice(0,60); const i=h.lastIndexOf('-'); if(i>30) h=h.slice(0,i); }
+  return h;
+}
+function refresh(){
+  if(!S) return;
+  const words=wordCount(textFromHtml(S.body)), T=TYPES[S.type];
+  $('#chipOut').textContent=firstTag()||'The Batcave';
+  const by=effByline() || 'Author';
+  $('#bylineOut').textContent=by+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+Math.max(1,Math.ceil(words/200))+' min read';
+  const goal = T.target.toLocaleString('en-US');
+  const good = words>=T.lo&&words<=T.hi;
+  $('#count').innerHTML='<b>'+words.toLocaleString('en-US')+'</b> words <span class="'+(good?'okc':'')+'">'+(T.floor ? 'floor '+goal : 'of about '+goal)+'</span>';
+  const st=S.seoTitle.trim().length, sd=S.seoDesc.trim().length;
+  $('#cSeoTitle').textContent=st? st+' / 60' : ''; $('#cSeoTitle').classList.toggle('over',st>60);
+  $('#cSeoDesc').textContent=sd? sd+' / 155' : ''; $('#cSeoDesc').classList.toggle('over',sd>155);
+  $('#fHandle').placeholder=suggestHandle()||'made from the title';
+  $('#useHandle').disabled=!suggestHandle();
+  $('#checks').innerHTML=pills(runChecks());
+  updateTools();
+}
+function scheduleRefresh(){ clearTimeout(checkTimer); checkTimer=setTimeout(refresh,180); }
+
+/* ---------- build the screens ---------- */
+function renderTop(){
+  const sel=$('#postSel'); sel.innerHTML='';
+  index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).forEach(x=>{
+    const o=document.createElement('option'); o.value=x.id; o.textContent=x.name||x.id; if(S&&x.id===S.id) o.selected=true; sel.appendChild(o);
+  });
+  $('#btnCopy').disabled=!S; $('#btnFields').disabled=!S; $('#btnDel').disabled=!S;
+}
+function buildTypeSelect(){
+  const sel=$('#fType'); sel.innerHTML='';
+  TYPE_ORDER.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=TYPES[k].label; sel.appendChild(o); });
+  const np=$('#nightPick'); np.innerHTML='';
+  const first=document.createElement('option'); first.value=''; first.textContent='Pick a weekly night to fill the card'; np.appendChild(first);
+  let grp=null, lastDay='';
+  NIGHTS.forEach((n,i)=>{
+    if(n.day!==lastDay){ grp=document.createElement('optgroup'); grp.label=NIGHT_DAYS[n.day]; np.appendChild(grp); lastDay=n.day; }
+    const o=document.createElement('option'); o.value=String(i); o.textContent=n.name+'  \u00b7  '+n.time; grp.appendChild(o);
+  });
+  const cu=document.createElement('option'); cu.value='custom'; cu.textContent='Something else (type it below)'; np.appendChild(cu);
+}
+function typeButtons(into,onPick){
+  into.innerHTML='';
+  TYPE_ORDER.forEach(k=>{
+    const b=document.createElement('button'); b.type='button';
+    const t=document.createElement('b'); t.textContent=TYPES[k].label; const s=document.createElement('span'); s.textContent=TYPES[k].blurb;
+    b.appendChild(t); b.appendChild(s); b.onclick=()=>onPick(k); into.appendChild(b);
+  });
+}
+function showEmpty(){
+  $('#empty').hidden=false; $('#sheetWrap').hidden=true; $('#bar').hidden=true; $('#ctx').hidden=true;
+  $('#checks').innerHTML=''; $('#confirms').innerHTML=''; $('#count').textContent='';
+  $('#chipOut').textContent='The Batcave';
+  typeButtons($('#emptyTypes'),k=>newPost(k));
+  renderTop();
+}
+function syncNightPick(){
+  const np=$('#nightPick'); if(!np||!S) return;
+  const nm=(S.night.name||'').trim();
+  let v='';
+  if(nm){ const i=NIGHTS.findIndex(n=>n.name===nm); v=i>=0?String(i):'custom'; }
+  np.value=v;
+}
+function fillInputs(){
+  document.querySelectorAll('[data-f]').forEach(el=>{ const v=getP(S,el.getAttribute('data-f')); el.value = v==null? '' : v; if(el.tagName==='TEXTAREA') autosize(el); });
+  $('#fType').value=S.type;
+  syncColumnUI();
+  syncNightPick();
+}
+function buildConfirms(){
+  const box=$('#confirms'); box.innerHTML='';
+  (CONFIRMS[S.type]||[]).forEach(([k,label])=>{
+    const l=document.createElement('label'); l.className='tick';
+    const c=document.createElement('input'); c.type='checkbox'; c.checked=!!S.confirm[k];
+    c.onchange=()=>{ S.confirm[k]=c.checked; scheduleSave(); refresh(); };
+    const s=document.createElement('span'); s.textContent=label;
+    l.appendChild(c); l.appendChild(s); box.appendChild(l);
+  });
+}
+function buildTagChips(){
+  const box=$('#tagChips'); box.innerHTML='';
+  TAG_SUGGEST.forEach(t=>{
+    const b=document.createElement('button'); b.type='button'; b.className='btn sm ghost'; b.textContent=t;
+    b.onclick=()=>{ const have=S.tags.split(',').map(x=>x.trim()).filter(Boolean); if(have.some(x=>x.toLowerCase()===t.toLowerCase())) return; have.push(t); S.tags=have.join(', '); $('#fTags').value=S.tags; scheduleSave(); refresh(); };
+    box.appendChild(b);
+  });
+}
+function applyColumnTags(){
+  // the column tag goes first, then First Read or Reread, then whatever other tags the post has
+  const rest=S.tags.split(',').map(x=>x.trim()).filter(Boolean).filter(x=>!COL_TAGS.has(x.toLowerCase()));
+  const col=COLUMNS[S.column], want=[];
+  if(col){ want.push(col.tag); if(S.column==='book' && S.read) want.push(S.read); }
+  if(!want.length && !rest.length) want.push(TYPES[S.type].tag);
+  S.tags=want.concat(rest).join(', ');
+  $('#fTags').value=S.tags;
+}
+function syncColumnUI(){
+  if(!S) return;
+  $('#fColumn').value=S.column||''; $('#fRead').value=S.read||'';
+  $('#readFld').hidden = S.column!=='book';
+  const col=COLUMNS[S.column];
+  $('#columnHint').textContent = col? col.hint+' Shopify theme template: '+col.tpl+'.' : 'Spoiler Alert and Batcave Book Club are columns with their own look. Leave this on None for everything else.';
+}
+function tplLine(){
+  const col=COLUMNS[S.column];
+  return col? 'Set the theme template to <b>'+col.tpl+'</b> (the file is '+col.file+'; Shopify lists it once the new theme is published). Add the tags exactly as shown.' : 'Leave the theme template on <b>Default article</b>, which now uses the Bat City layout.';
+}
+function applyType(){
+  const T=TYPES[S.type];
+  $('#typeHint').textContent=T.hint;
+  $('#bylineHint').textContent=T.byline;
+  $('#bylineHint').hidden=!T.byline;
+  const on=nightOn();
+  $('#nightCard').hidden=!on; $('#addNight').hidden=on;
+  $('#rmNight').hidden = S.type==='guide';
+  buildConfirms();
+  document.querySelectorAll('.sheet textarea').forEach(autosize);   // a card that was hidden measured as zero tall
+}
+function loadIntoUI(){
+  $('#empty').hidden=true; $('#sheetWrap').hidden=false; $('#bar').hidden=false;
+  const clean=cleanHtml(S.body); S.body=clean;
+  ed.innerHTML=clean || '<p><br></p>';
+  fillInputs(); applyType(); renderTop(); refresh(); paintPrompts();
+  $('#sheetWrap').scrollTop=0; setCtx(null);
+  document.querySelectorAll('.sheet textarea, #fSeoDesc').forEach(autosize);
+}
+
+/* ---------- save and open ---------- */
+function scheduleSave(){ if(!S) return; dirty=true; setSave('Saving...'); clearTimeout(saveTimer); saveTimer=setTimeout(save,1200); }
+function flush(){ if(!S) return Promise.resolve(); if(syncBody()) dirty=true; return dirty? save() : Promise.resolve(); }
+async function save(){
+  if(!S) return;
+  syncBody();
+  S.updatedAt=new Date().toISOString();
+  dirty=false;
+  const id=S.id, doc=stripDoc(S), name=postName(S), type=S.type, updatedAt=S.updatedAt;   // captured now: S can move to another post while the writes are in flight
+  const slot=index.find(x=>x.id===id); if(slot){ slot.name=name; slot.type=type; slot.updatedAt=updatedAt; } else index.push({id,name,type,updatedAt});
+  try{
+    if(!db){ setSave('Not saved: no storage here',true); return; }
+    if(JSON.stringify(doc).length>250000){ dirty=true; setSave('Too big to save: shorten the post',true); return; }
+    await Promise.all([ db.doc('posts/'+id).set(doc), db.doc('postindex/'+id).set({name,type,updatedAt}) ]);
+    setSave('Saved '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
+  }catch(e){ dirty=true; setSave('Could not save ('+(e&&e.code||'error')+')',true); }
+  renderTop();
+}
+function newPost(type){
+  const d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  S=Object.assign(blankDoc(type),{id:'p-'+stamp+'-'+uid()});
+  index.push({id:S.id,name:postName(S),type:S.type,updatedAt:S.updatedAt});
+  dirty=false; closeModal(); loadIntoUI(); scheduleSave();
+  $('#fTitle').focus();
+}
+async function openPost(id){
+  try{
+    const snap=await db.doc('posts/'+id).get();
+    if(!snap.exists){ toast('That post could not be found'); return; }
+    S=Object.assign(mergeDoc(snap.data()),{id});
+  }catch(e){ toast('Could not open that post'); return; }
+  dirty=false; loadIntoUI();
+}
+async function deletePost(){
+  const id=S.id;
+  try{ await Promise.all([ db.doc('posts/'+id).delete(), db.doc('postindex/'+id).delete() ]); }catch(e){}
+  index=index.filter(x=>x.id!==id); S=null; dirty=false; clearTimeout(saveTimer);
+  if(index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id); else showEmpty();
+  toast('Post deleted');
+}
+
+/* ---------- Shopify fields ---------- */
+// The metafields, top to bottom, in the order Shopify's blog post page lists them (read off the live page, Nov 5).
+// Shopify shows all 18 on every post; the list below only lists the ones this kind of post uses.
+const META_ORDER = ['night_link','night_blurb','night_time','night_name','night_day',
+  'byline'];
+// Rows run in the order of Shopify's page: left column (Title, Content, Excerpt, Metafields, Search engine listing), then the right column.
+function shopifyRows(){
+  const rows=[], add=(where,label,value,o)=>rows.push(Object.assign({where,label,value:value||''},o||{}));
+  syncBody();
+  add('Title','Title',S.title.trim());
+  add('Content: press the <> button in the editor, then paste','Body (HTML)',S.body,{mono:true,always:true});
+  add('Excerpt','Excerpt',S.excerpt.trim());
+  const meta={ byline:effByline() };
+  if(nightOn()){
+    meta.night_day=S.night.day.trim();
+    meta.night_name=S.night.name.trim();
+    meta.night_time=S.night.time.trim();
+    meta.night_blurb=S.night.blurb.trim();
+    meta.night_link=S.night.link.trim();
+  }
+  META_ORDER.concat(Object.keys(meta).filter(k=>META_ORDER.indexOf(k)<0)).forEach(k=>{ if(k in meta) add('Metafields',k,meta[k],{field:true}); });
+  add('Search engine listing','Page title',S.seoTitle.trim());
+  add('Search engine listing','Meta description',S.seoDesc.trim());
+  add('Search engine listing','URL handle',(S.handle.trim()||suggestHandle()));
+  add('Right column','Featured image alt text',S.alt.trim());
+  add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
+  add('Right column','Tags',S.tags.trim());
+  add('Right column','Theme template (bottom of the right column)',COLUMNS[S.column]? COLUMNS[S.column].tpl : 'Default article',{always:true});
+  return rows;
+}
+async function copyText(text,ta){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){ if(ta){ ta.focus(); ta.select(); } return false; }
+}
+function openFields(bodyCopied){
+  if(!S) return;
+  const rows=shopifyRows(), checks=runChecks().filter(c=>c[0]==='warn'||c[0]==='stop');
+  const root=$('#modalRoot');
+  let html='<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><h2 id="mt">Fields for Shopify</h2>';
+  if(bodyCopied===true) html+='<div class="status ok">Body copied. In Shopify, open the post, press the &lt;&gt; button in the editor, select everything in the code box and paste.</div>';
+  else if(bodyCopied===false) html+='<div class="status warn">The browser would not copy here. Click the Body box below, press Ctrl or Cmd A, then Ctrl or Cmd C.</div>';
+  if(checks.length) html+='<div><h3>Still open ('+checks.length+')</h3><ul class="checks" style="margin-top:6px">'+pills(checks)+'</ul></div>';
+  else html+='<div class="status ok">Every check is clear.</div>';
+  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b>. '+tplLine()+' Leave it as a draft. Brendan can read it in Shopify and comment.</p>';
+  let lastWhere='';
+  rows.forEach((r,i)=>{
+    const empty=!r.value && !r.always;
+    if(r.where!==lastWhere){ html+='<h3>'+esc(r.where)+'</h3>'; lastWhere=r.where; }
+    html+='<div class="frow'+(empty?' skip':'')+'"><div><span class="fl">'+esc(r.label)+'</span>'+(empty?' <span class="fw">(empty, skip)</span>':'')+'</div>'+
+      '<textarea id="fr'+i+'" readonly spellcheck="false" rows="'+(r.mono?6:(r.value.length>90?3:1))+'"'+(r.mono?'':' style="font-family:var(--ui);font-size:13px"')+'>'+esc(r.value)+'</textarea>'+
+      '<button class="btn sm" type="button" data-copy="'+i+'"'+(empty?' disabled':'')+'>Copy</button></div>';
+  });
+  html+='<div class="mrow"><span class="grow"></span><button class="btn" id="mClose" type="button">Close</button></div></div></div>';
+  root.innerHTML=html;
+  root.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{
+    const i=+b.getAttribute('data-copy'), ta=$('#fr'+i);
+    const ok=await copyText(rows[i].value,ta); toast(ok? 'Copied '+rows[i].label : 'Press Ctrl or Cmd C to copy');
+  });
+  $('#mClose').onclick=closeModal; $('#scrim').addEventListener('click',e=>{ if(e.target.id==='scrim') closeModal(); });
+  $('#mClose').focus();
+}
+function closeModal(){ $('#modalRoot').innerHTML=''; }
+async function copyBody(){
+  if(!S) return;
+  syncBody();
+  const ok=await copyText(S.body,null);
+  openFields(ok);
+}
+function openChooser(){
+  const root=$('#modalRoot');
+  root.innerHTML='<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><h2 id="mt">What kind of post?</h2><div class="types chooser" id="chooseTypes" style="max-width:none"></div><div class="mrow"><span class="grow"></span><button class="btn" id="mClose" type="button">Cancel</button></div></div></div>';
+  typeButtons($('#chooseTypes'),async k=>{ await flush(); newPost(k); });
+  $('#mClose').onclick=closeModal; $('#scrim').addEventListener('click',e=>{ if(e.target.id==='scrim') closeModal(); });
+}
+
+/* ---------- wiring ---------- */
+function wire(){
+  ed=$('#postBody');
+  try{ document.execCommand('defaultParagraphSeparator',false,'p'); }catch(e){}
+  buildTypeSelect(); buildTagChips();
+
+  // one-line fields: no line breaks, even when pasted (these go into Shopify single-line fields)
+  document.querySelectorAll('#fTitle,#fExcerpt,#fSeoDesc,[data-f="night.blurb"]').forEach(el=>{
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); } });
+    el.addEventListener('input',()=>{ if(/[\r\n]/.test(el.value)) el.value=el.value.replace(/\s*[\r\n]+\s*/g,' '); });
+  });
+
+  // plain inputs and textareas
+  document.querySelectorAll('[data-f]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      if(!S) return;
+      setP(S,el.getAttribute('data-f'),el.value);
+      if(el.tagName==='TEXTAREA') autosize(el);
+      if(el.getAttribute('data-f')==='night.name') syncNightPick();
+      scheduleSave(); scheduleRefresh();
+    });
+  });
+  $('#fType').onchange=e=>{
+    if(!S) return;
+    const old=TYPES[S.type], nu=TYPES[e.target.value];
+    if(S.tags.trim()===old.tag) { S.tags=nu.tag; $('#fTags').value=S.tags; }
+    S.type=e.target.value; if(S.type==='guide') S.night.on=true;
+    if(!nu.crew && S.byline.trim()===CREW) S.byline='';          // the crew byline does not follow a staff pick
+    else if(nu.crew && !S.byline.trim()) S.byline=CREW;
+    $('#fByline').value=S.byline;
+    applyType(); scheduleSave(); refresh();
+  };
+  $('#fColumn').onchange=e=>{
+    if(!S) return;
+    S.column=e.target.value; if(S.column!=='book') S.read='';
+    applyColumnTags(); syncColumnUI(); scheduleSave(); refresh();
+  };
+  $('#fRead').onchange=e=>{
+    if(!S) return;
+    S.read=e.target.value;
+    applyColumnTags(); syncColumnUI(); scheduleSave(); refresh();
+  };
+  $('#nightPick').onchange=e=>{
+    if(!S) return;
+    const v=e.target.value;
+    if(v===''){ syncNightPick(); return; }
+    if(v==='custom'){ const nm=document.querySelector('[data-f="night.name"]'); if(nm) nm.focus(); return; }
+    const n=NIGHTS[+v]; S.night.day=n.day; S.night.name=n.name; S.night.time=n.time; S.night.link=n.link;
+    fillInputs(); scheduleSave(); refresh();
+  };
+  $('#addNight').onclick=()=>{ S.night.on=true; applyType(); scheduleSave(); refresh(); };
+  $('#rmNight').onclick=()=>{ S.night.on=false; applyType(); scheduleSave(); refresh(); };
+  $('#useHandle').onclick=()=>{ S.handle=suggestHandle(); $('#fHandle').value=S.handle; scheduleSave(); refresh(); };
+
+  // toolbar
+  ['tB','tI','tLink','tH2','tH3','tOL','tUL','tQ','tImg','tNext','tUndo','tRedo'].forEach(id=>$('#'+id).addEventListener('mousedown',e=>e.preventDefault()));
+  $('#tB').onclick=()=>fmt('bold'); $('#tI').onclick=()=>fmt('italic');
+  $('#tH2').onclick=()=>setBlock('H2'); $('#tH3').onclick=()=>setBlock('H3');
+  $('#tOL').onclick=()=>setBlock('OL'); $('#tUL').onclick=()=>setBlock('UL'); $('#tQ').onclick=()=>setBlock('BLOCKQUOTE');
+  $('#tLink').onclick=()=>{
+    const s=getSelection(); const a=s.anchorNode && (s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement);
+    const link=a&&ed.contains(a)? a.closest('a') : null;
+    if(link){ setCtx('link',link); return; }
+    if(!savedRange || savedRange.collapsed){ toast('Select some text in the post first'); return; }
+    setCtx('newlink');
+  };
+  $('#tImg').onclick=()=>setCtx('newimg');
+  $('#tNext').onclick=()=>gotoPrompt(1);
+  $('#tUndo').onclick=()=>{ ed.focus({preventScroll:true}); document.execCommand('undo'); onBodyInput(); };
+  $('#tRedo').onclick=()=>{ ed.focus({preventScroll:true}); document.execCommand('redo'); onBodyInput(); };
+
+  // the post body
+  ed.addEventListener('input',onBodyInput);
+  ed.addEventListener('keydown',e=>{
+    if(e.key==='Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && phRanges().length){ e.preventDefault(); gotoPrompt(e.shiftKey?-1:1); }
+  });
+  ed.addEventListener('paste',e=>{
+    e.preventDefault();
+    const txt=((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r/g,'');
+    const paras=txt.split(/\n{2,}/).map(s=>s.replace(/\s*\n\s*/g,' ').trim()).filter(Boolean);
+    paras.forEach((p,i)=>{ if(i>0) document.execCommand('insertParagraph'); document.execCommand('insertText',false,p); });
+  });
+  ed.addEventListener('click',e=>{
+    const img=e.target.closest&&e.target.closest('img'); const a=e.target.closest&&e.target.closest('a');
+    if(img&&ed.contains(img)) setCtx('img',img);
+    else if(a&&ed.contains(a)){ e.preventDefault(); setCtx('link',a); }
+    else if(ctxMode==='img'||ctxMode==='link') setCtx(null);
+  });
+  const stopFiles=e=>{ if(e.dataTransfer && Array.from(e.dataTransfer.types||[]).includes('Files')) e.preventDefault(); };
+  window.addEventListener('dragover',stopFiles); window.addEventListener('drop',stopFiles);
+  document.addEventListener('selectionchange',()=>{
+    const s=getSelection();
+    if(s&&s.rangeCount&&ed.contains(s.anchorNode)){ savedRange=s.getRangeAt(0).cloneRange(); updateTools(); }
+  });
+
+  // top bar
+  $('#btnCopy').onclick=copyBody; $('#btnFields').onclick=()=>openFields(null);
+  $('#btnNew').onclick=()=>{ flush(); openChooser(); };
+  $('#postSel').onchange=async e=>{ const id=e.target.value; await flush(); openPost(id); };
+  $('#btnDel').onclick=()=>{ if(!S) return; $('#delAsk').hidden=false; $('#btnDel').hidden=true; };
+  $('#btnDelNo').onclick=()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; };
+  $('#btnDelYes').onclick=async()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; await deletePost(); };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+  window.addEventListener('pagehide',()=>{ flush(); });
+}
+
+async function boot(){
+  wire(); showEmpty(); setSave('Loading...');
+  try{ if(window.claude && window.claude.use){ db=await window.claude.use('db'); } }catch(e){ db=null; }
+  try{
+    if(db){
+      const ix=await db.collection('postindex').get();
+      index=ix.docs.map(d=>Object.assign({id:d.id},d.data()));
+    }
+  }catch(e){ setSave('Saved posts could not load',true); }
+  renderTop(); setSave(db?'':'Not saved between visits here');
+  if(db && index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id);
+}
+boot();
+window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS };
+</script>
+</body></html>
