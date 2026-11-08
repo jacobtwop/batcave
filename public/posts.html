@@ -650,8 +650,8 @@ details.card[open]>summary{margin-bottom:8px}
 <script>
 /* ---------- the kinds of post ---------- */
 const TYPES = {
-  guide:  {label:'Guide',  tag:'Guides',  target:1000, lo:800, hi:1300, noPrices:true,
-    blurb:'About 1,000 words. Turns a first visit into a second and ends at a named night. No prices, so it does not go stale.',
+  guide:  {label:'Guide',  tag:'Guides',  target:1000, lo:1000, hi:Infinity, floor:true, noPrices:true,
+    blurb:'1,000 words or more. Turns a first visit into a second and ends at a named night. No prices, so it does not go stale.',
     hint:'A guide should turn a first visit into a second, and end at a named night.', crew:true, byline:'Signed The Bat City Crew unless you type a name here. Set Shopify\'s own Author box to the same name.'},
   short:  {label:'Short post', tag:'News', target:500, lo:350, hi:650,
     blurb:'About 500 words. A quick how-to, a restock alert, a roundup.',
@@ -1049,7 +1049,7 @@ function runChecks(){
   add(pc?'warn':'ok', pc? pc+' [prompt'+(pc===1?'':'s')+'] left to fill in or delete' : 'No [prompts] left');
 
   // length
-  add(words>=T.lo && words<=T.hi?'ok':'warn', 'Post is '+words+' words (aim for about '+T.target.toLocaleString('en-US')+')');
+  add(words>=T.lo && words<=T.hi?'ok':'warn', 'Post is '+words+' words ('+(T.floor ? T.lo.toLocaleString('en-US')+' is the floor, no ceiling' : 'aim for about '+T.target.toLocaleString('en-US'))+')');
 
   // house rules
   const bad=[]; { const re=/Bat City(?! Games\s*&\s*Comics| Magic Club| Crew)/g; let m; while((m=re.exec(text.replace(/&amp;/g,'&')))) bad.push(text.slice(Math.max(0,m.index-12),m.index+24).trim()); }
@@ -1126,7 +1126,7 @@ function refresh(){
   $('#bylineOut').textContent=by+' · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+Math.max(1,Math.ceil(words/200))+' min read';
   const goal = T.target.toLocaleString('en-US');
   const good = words>=T.lo&&words<=T.hi;
-  $('#count').innerHTML='<b>'+words.toLocaleString('en-US')+'</b> words <span class="'+(good?'okc':'')+'">of about '+goal+'</span>';
+  $('#count').innerHTML='<b>'+words.toLocaleString('en-US')+'</b> words <span class="'+(good?'okc':'')+'">'+(T.floor ? 'floor '+goal : 'of about '+goal)+'</span>';
   const st=S.seoTitle.trim().length, sd=S.seoDesc.trim().length;
   $('#cSeoTitle').textContent=st? st+' / 60' : ''; $('#cSeoTitle').classList.toggle('over',st>60);
   $('#cSeoDesc').textContent=sd? sd+' / 155' : ''; $('#cSeoDesc').classList.toggle('over',sd>155);
