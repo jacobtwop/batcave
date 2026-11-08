@@ -143,6 +143,8 @@ details.card[open]>summary{margin-bottom:8px}
 .sheet .prose>blockquote p{margin:0 0 .6em}
 .sheet .prose>blockquote p:last-child{margin-bottom:0}
 .sheet .prose hr{border:0;border-top:3px solid var(--pd);margin:2em 0}
+.sheet .prose .bc-redact{background:#0B0710;color:transparent;caret-color:#C9FA00;border-radius:2px;padding:.04em .12em;cursor:text}
+.sheet .prose .bc-redact:hover,.sheet .prose .bc-redact:focus{color:var(--l)}
 ::highlight(bc-ph){background-color:#FFE66B;color:#1B1024}
 
 .sheet .nightcard input:focus,.sheet .nightcard textarea:focus,.sheet .imgslot input:focus{outline:2px solid #FF0A8A;outline-offset:1px}
@@ -289,6 +291,8 @@ details.card[open]>summary{margin-bottom:8px}
       <div class="card">
         <h2>This post</h2>
         <div class="fld"><label class="f" for="fType">Kind of post</label><select id="fType" style="width:100%"></select><p class="hint" id="typeHint" style="margin:6px 0 0"></p></div>
+        <div class="fld"><label class="f" for="fColumn">Column</label><select id="fColumn" style="width:100%"><option value="">None: a regular Batcave post</option><option value="spoiler">Spoiler Alert</option><option value="book">Batcave Book Club</option></select><p class="hint" id="columnHint" style="margin:6px 0 0"></p></div>
+        <div class="fld" id="readFld" hidden><label class="f" for="fRead">Read status</label><select id="fRead" style="width:100%"><option value="">No status (an announcement)</option><option value="First Read">First Read: we read it first</option><option value="Reread">Reread</option></select></div>
         <div class="fld"><label class="f" for="fTags">Tags</label><input id="fTags" type="text" data-f="tags" style="width:100%" placeholder="Guides, Pull List"><div class="chips" id="tagChips"></div><p class="hint" style="margin:6px 0 0">The first tag is the chip above the title.</p></div>
         <div class="fld"><label class="f" for="fByline">Byline (optional)</label><input id="fByline" type="text" data-f="byline" style="width:100%" placeholder="Who signs this post"><p class="hint" id="bylineHint" style="margin:6px 0 0"></p></div>
       </div>
@@ -666,6 +670,12 @@ const TYPES = {
 };
 const TYPE_ORDER = ['guide','short','staff','news'];
 const CREW = 'The Bat City Crew';   // the default byline for guides, short posts and news (Jacob, Nov 5)
+const COLUMNS = {   // the two Batcave columns (Nov 8). A column is a tag plus a theme template; the tag comes first in the tag list.
+  spoiler:{label:'Spoiler Alert',     tag:'Spoiler Alert',     tpl:'spoiler-alert', file:'article.spoiler-alert', hint:'This post gives away the ending. The theme prints a warning strip under the title.'},
+  book:   {label:'Batcave Book Club', tag:'Batcave Book Club', tpl:'book-club',     file:'article.book-club',     hint:'Pull quotes get an "Our take" tab. First Read or Reread shows in a banner under the title.'}
+};
+const READS = ['First Read','Reread'];
+const COL_TAGS = new Set(['spoiler alert','batcave book club','first read','reread']);
 const OLD_CREW = 'Bat City Games & Comics Crew';   // the earlier default; drafts saved with it are moved over on load
 
 const SCAFFOLD = {
@@ -749,7 +759,7 @@ let ed = null;
 function blankDoc(type){
   const t = TYPES[type];
   return {
-    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'',
+    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'', column:'', read:'',
     night:{on:type==='guide', day:'', name:'', time:'', blurb:'', link:''},
     body:SCAFFOLD[type], confirm:{}, updatedAt:new Date().toISOString()
   };
@@ -762,6 +772,7 @@ function mergeDoc(d){
   o.type = type; delete o.cap;
   o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
   o.body = typeof d.body === 'string' ? d.body : '';
+  o.column = COLUMNS[o.column]? o.column : ''; o.read = (o.column==='book' && READS.indexOf(o.read)>=0)? o.read : '';   // drafts from before the columns open with none
   if((o.byline||'').trim()===OLD_CREW) o.byline = TYPES[type].crew? CREW : '';   // the earlier default byline becomes the new one
   return o;
 }
@@ -785,6 +796,7 @@ function inl(n){
     case 'B': case 'STRONG': { const k=kids(); return k.trim()? '<strong>'+k+'</strong>' : k; }
     case 'I': case 'EM': { const k=kids(); return k.trim()? '<em>'+k+'</em>' : k; }
     case 'A': { const h=okHref(n.getAttribute('href')), k=kids(); return h&&k.trim()? '<a href="'+escA(h)+'">'+k+'</a>' : k; }
+    case 'SPAN': { const k=kids(); return n.classList.contains('bc-redact') && k.trim()? '<span class="bc-redact" tabindex="0">'+k+'</span>' : k; }   // redaction bars (column posts); any other span is dropped
     case 'BR': return '<br>';
     case 'IMG': { const s=okSrc(n.getAttribute('src')); return s? '<img src="'+escA(s)+'" alt="'+escA((n.getAttribute('alt')||'').trim())+'">' : ''; }
     default: return kids();
@@ -1098,6 +1110,16 @@ function runChecks(){
   if(S.type==='staff') add(S.byline.trim()?'ok':'warn', S.byline.trim()? 'Signed by '+S.byline.trim() : 'Put the staff member\'s name in the byline (or Jacob Clifton if you wrote it)');
   if(S.type==='staff' && /<blockquote>/.test(S.body)) add('info','Staff quote: needs the staff member\'s okay');
 
+  // column
+  if(S.column){
+    const col=COLUMNS[S.column], first=firstTag().toLowerCase()===col.tag.toLowerCase();
+    add(first?'ok':'warn', first? 'Column tag is first: '+col.tag : 'The first tag should be '+col.tag+' so the chip and the column page match');
+    if(S.column==='spoiler') add('info','Spoiler Alert: this post may give away the ending. The warning strip under the title says so.');
+    if(S.column==='book') add(S.read?'ok':'info', S.read? 'Banner under the title will say '+S.read : 'Pick First Read or Reread so the banner shows (skip it for an announcement)');
+    add('info','In Shopify, set the theme template to '+col.tpl+'.');
+    if(/jacob/i.test(S.byline) || /\bJacob\b/.test(textFromHtml(S.body))) add('warn','Jacob\'s name stays out of the columns (Nov 8). Use we, or sign it The Bat City Crew.');
+  }
+
   // search listing
   if(!S.seoTitle.trim() && S.title.trim().length>60) add('warn','Title is '+S.title.trim().length+' characters. Search results cut off near 60. Add a shorter page title.');
   if(S.seoTitle.trim().length>60) add('warn','Page title is '+S.seoTitle.trim().length+' characters (about 60 fits)');
@@ -1182,6 +1204,7 @@ function syncNightPick(){
 function fillInputs(){
   document.querySelectorAll('[data-f]').forEach(el=>{ const v=getP(S,el.getAttribute('data-f')); el.value = v==null? '' : v; if(el.tagName==='TEXTAREA') autosize(el); });
   $('#fType').value=S.type;
+  syncColumnUI();
   syncNightPick();
 }
 function buildConfirms(){
@@ -1201,6 +1224,26 @@ function buildTagChips(){
     b.onclick=()=>{ const have=S.tags.split(',').map(x=>x.trim()).filter(Boolean); if(have.some(x=>x.toLowerCase()===t.toLowerCase())) return; have.push(t); S.tags=have.join(', '); $('#fTags').value=S.tags; scheduleSave(); refresh(); };
     box.appendChild(b);
   });
+}
+function applyColumnTags(){
+  // the column tag goes first, then First Read or Reread, then whatever other tags the post has
+  const rest=S.tags.split(',').map(x=>x.trim()).filter(Boolean).filter(x=>!COL_TAGS.has(x.toLowerCase()));
+  const col=COLUMNS[S.column], want=[];
+  if(col){ want.push(col.tag); if(S.column==='book' && S.read) want.push(S.read); }
+  if(!want.length && !rest.length) want.push(TYPES[S.type].tag);
+  S.tags=want.concat(rest).join(', ');
+  $('#fTags').value=S.tags;
+}
+function syncColumnUI(){
+  if(!S) return;
+  $('#fColumn').value=S.column||''; $('#fRead').value=S.read||'';
+  $('#readFld').hidden = S.column!=='book';
+  const col=COLUMNS[S.column];
+  $('#columnHint').textContent = col? col.hint+' Shopify theme template: '+col.tpl+'.' : 'Spoiler Alert and Batcave Book Club are columns with their own look. Leave this on None for everything else.';
+}
+function tplLine(){
+  const col=COLUMNS[S.column];
+  return col? 'Set the theme template to <b>'+col.tpl+'</b> (the file is '+col.file+'; Shopify lists it once the new theme is published). Add the tags exactly as shown.' : 'Leave the theme template on <b>Default article</b>, which now uses the Bat City layout.';
 }
 function applyType(){
   const T=TYPES[S.type];
@@ -1290,6 +1333,7 @@ function shopifyRows(){
   add('Right column','Featured image alt text',S.alt.trim());
   add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
   add('Right column','Tags',S.tags.trim());
+  add('Right column','Theme template (bottom of the right column)',COLUMNS[S.column]? COLUMNS[S.column].tpl : 'Default article',{always:true});
   return rows;
 }
 async function copyText(text,ta){
@@ -1305,7 +1349,7 @@ function openFields(bodyCopied){
   else if(bodyCopied===false) html+='<div class="status warn">The browser would not copy here. Click the Body box below, press Ctrl or Cmd A, then Ctrl or Cmd C.</div>';
   if(checks.length) html+='<div><h3>Still open ('+checks.length+')</h3><ul class="checks" style="margin-top:6px">'+pills(checks)+'</ul></div>';
   else html+='<div class="status ok">Every check is clear.</div>';
-  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b>. Leave the theme template on <b>Default article</b>, which now uses the Bat City layout. Leave it as a draft. Brendan can read it in Shopify and comment.</p>';
+  html+='<p class="dim" style="margin:0">The byline field is what readers see. The data Shopify sends to search engines may read the Author box instead, so set both to the same name. In Shopify: Content, Blog posts, Add blog post (or open the draft). Pick the blog <b>The Batcave</b>. '+tplLine()+' Leave it as a draft. Brendan can read it in Shopify and comment.</p>';
   let lastWhere='';
   rows.forEach((r,i)=>{
     const empty=!r.value && !r.always;
@@ -1368,6 +1412,16 @@ function wire(){
     else if(nu.crew && !S.byline.trim()) S.byline=CREW;
     $('#fByline').value=S.byline;
     applyType(); scheduleSave(); refresh();
+  };
+  $('#fColumn').onchange=e=>{
+    if(!S) return;
+    S.column=e.target.value; if(S.column!=='book') S.read='';
+    applyColumnTags(); syncColumnUI(); scheduleSave(); refresh();
+  };
+  $('#fRead').onchange=e=>{
+    if(!S) return;
+    S.read=e.target.value;
+    applyColumnTags(); syncColumnUI(); scheduleSave(); refresh();
   };
   $('#nightPick').onchange=e=>{
     if(!S) return;
@@ -1446,6 +1500,6 @@ async function boot(){
   if(db && index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id);
 }
 boot();
-window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc };
+window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS };
 </script>
 </body></html>
