@@ -290,6 +290,7 @@ details.card[open]>summary{margin-bottom:8px}
     <aside class="rail" aria-label="Details and checks">
       <div class="card">
         <h2>This post</h2>
+        <div class="fld"><label class="f" for="fPub">Publish date</label><input id="fPub" type="date" data-f="publishOn" style="width:100%"><p class="hint" id="pubHint" style="margin:6px 0 0"></p></div>
         <div class="fld"><label class="f" for="fType">Kind of post</label><select id="fType" style="width:100%"></select><p class="hint" id="typeHint" style="margin:6px 0 0"></p></div>
         <div class="fld"><label class="f" for="fColumn">Column</label><select id="fColumn" style="width:100%"><option value="">None: a regular Batcave post</option><option value="spoiler">Spoiler Alert!</option><option value="book">Batcave Book Club</option></select><p class="hint" id="columnHint" style="margin:6px 0 0"></p><div id="outlineBox" hidden style="margin-top:8px"><button class="btn sm" id="btnOutline" type="button">Load the outline</button><span id="outlineAsk" hidden>This replaces the text you have typed. <button class="btn sm danger" id="btnOutlineYes" type="button">Yes, replace</button> <button class="btn sm" id="btnOutlineNo" type="button">Keep my text</button></span></div></div>
         <div class="fld" id="readFld" hidden><label class="f" for="fRead">Read status</label><select id="fRead" style="width:100%"><option value="">No status (an announcement)</option><option value="First Read">First Read: we read it first</option><option value="Reread">Reread</option></select></div>
@@ -771,6 +772,21 @@ function setSave(msg,bad){ const s=$('#saveState'); s.textContent=msg; s.classLi
 function getP(o,p){ return p.split('.').reduce((a,k)=>a==null?a:a[k],o); }
 function setP(o,p,v){ const ks=p.split('.'), last=ks.pop(); ks.reduce((a,k)=>a[k],o)[last]=v; }
 function shortDate(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+/* ---------- publish dates (Nov 8) ---------- */
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dateObj(iso){ const p=String(iso).split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function dateLabel(iso){ const t=dateObj(iso); return t.toLocaleDateString('en-US',{weekday:'short'})+' '+t.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function daysUntil(iso){ const n=new Date(); const t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()); return Math.round((dateObj(iso)-t0)/864e5); }
+function sortedIndex(){
+  const dated=index.filter(x=>x.pub).sort((a,b)=>a.pub.localeCompare(b.pub)||String(a.name||'').localeCompare(String(b.name||'')));
+  const rest=index.filter(x=>!x.pub).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
+  return {dated,rest};
+}
+function startId(){   // the next post to publish, else the one edited last
+  const {dated,rest}=sortedIndex(), t=todayISO(), up=dated.filter(x=>x.pub>=t);
+  const pick=up[0]||rest[0]||dated[dated.length-1];
+  return pick? pick.id : null;
+}
 function autosize(el){ el.style.height='auto'; el.style.height=(el.scrollHeight+2)+'px'; }
 
 /* ---------- state ---------- */
@@ -784,7 +800,7 @@ let ed = null;
 function blankDoc(type){
   const t = TYPES[type];
   return {
-    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'', column:'', read:'',
+    type, created:new Date().toISOString(), title:'', excerpt:'', tags:t.tag, byline:t.crew? CREW : '', alt:'', seoTitle:'', seoDesc:'', handle:'', column:'', read:'', publishOn:'',
     night:{on:type==='guide', day:'', name:'', time:'', blurb:'', link:''},
     body:SCAFFOLD[type], confirm:{}, updatedAt:new Date().toISOString()
   };
@@ -795,6 +811,7 @@ function mergeDoc(d){
   const b = blankDoc(type);
   const o = Object.assign(b, d);
   o.type = type; delete o.cap;
+  o.publishOn = /^\d{4}-\d{2}-\d{2}$/.test(String(o.publishOn||'')) ? o.publishOn : '';   // Nov 8: the day it publishes, YYYY-MM-DD
   o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
   o.body = typeof d.body === 'string' ? d.body : '';
   o.tags = (o.column==='spoiler')? String(o.tags||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>x.toLowerCase()==='spoiler alert'? COLUMNS.spoiler.tag : x).join(', ') : o.tags;   // the old tag becomes Spoiler Alert!
@@ -1155,6 +1172,12 @@ function runChecks(){
   // hand confirmations
   (CONFIRMS[S.type]||[]).forEach(([k,label])=>{ if(!ok(k)) add('warn','Not yet confirmed: '+label); });
   add('info','Photos favor cards, boards, miniatures, components and hands in play. Nothing is invented: titles, dates, prices and quotes are real.');
+  if(S.publishOn){
+    const dd=daysUntil(S.publishOn), when=dateLabel(S.publishOn), open=out.filter(c=>c[0]==='warn'||c[0]==='stop').length;
+    if(dd<0) out.unshift(['warn','The publish date ('+when+') has passed. Change it, or clear it if the post is already live.']);
+    else if(dd<=2 && open) out.unshift(['warn','Publishes '+(dd===0?'today':dd===1?'tomorrow':'in 2 days')+' ('+when+') and '+open+' check'+(open===1?' is':'s are')+' still open.']);
+    else out.unshift(['info','Publishes '+when+(dd===0?' (today)':dd===1?' (tomorrow)':' (in '+dd+' days)')+'. In Shopify, schedule it for 9:00 AM that day.']);
+  }
   return out;
 }
 function pills(list){ return list.map(([lv,tx])=>'<li><span class="pill '+lv+'">'+({ok:'OK',warn:'Check',stop:'Stop',info:'Note'})[lv]+'</span><span>'+esc(tx)+'</span></li>').join(''); }
@@ -1181,6 +1204,7 @@ function refresh(){
   $('#fHandle').placeholder=suggestHandle()||'made from the title';
   $('#useHandle').disabled=!suggestHandle();
   $('#checks').innerHTML=pills(runChecks());
+  $('#pubHint').textContent = S.publishOn? dateLabel(S.publishOn)+(daysUntil(S.publishOn)<0?' (past)':daysUntil(S.publishOn)===0?' (today)':daysUntil(S.publishOn)===1?' (tomorrow)':' (in '+daysUntil(S.publishOn)+' days)')+'. Shopify: schedule it for 9:00 AM.' : 'No date yet. Posts with a date sit at the top of your list, soonest first.';
   updateTools();
 }
 function scheduleRefresh(){ clearTimeout(checkTimer); checkTimer=setTimeout(refresh,180); }
@@ -1188,9 +1212,18 @@ function scheduleRefresh(){ clearTimeout(checkTimer); checkTimer=setTimeout(refr
 /* ---------- build the screens ---------- */
 function renderTop(){
   const sel=$('#postSel'); sel.innerHTML='';
-  index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')).forEach(x=>{
-    const o=document.createElement('option'); o.value=x.id; o.textContent=x.name||x.id; if(S&&x.id===S.id) o.selected=true; sel.appendChild(o);
-  });
+  const mk=(x,dated)=>{
+    const o=document.createElement('option'); o.value=x.id;
+    const nm=x.name||x.id;
+    o.textContent = dated? (daysUntil(x.pub)<0? 'Past \u00b7 ' : '')+dateLabel(x.pub)+' \u00b7 '+nm : nm;
+    if(S&&x.id===S.id) o.selected=true; return o;
+  };
+  const {dated,rest}=sortedIndex();
+  if(dated.length){
+    const g1=document.createElement('optgroup'); g1.label='Scheduled, soonest first';
+    dated.forEach(x=>g1.appendChild(mk(x,true))); sel.appendChild(g1);
+    if(rest.length){ const g2=document.createElement('optgroup'); g2.label='No date yet'; rest.forEach(x=>g2.appendChild(mk(x,false))); sel.appendChild(g2); }
+  } else rest.forEach(x=>sel.appendChild(mk(x,false)));
   $('#btnCopy').disabled=!S; $('#btnFields').disabled=!S; $('#btnDel').disabled=!S;
 }
 function buildTypeSelect(){
@@ -1327,12 +1360,12 @@ async function save(){
   syncBody();
   S.updatedAt=new Date().toISOString();
   dirty=false;
-  const id=S.id, doc=stripDoc(S), name=postName(S), type=S.type, updatedAt=S.updatedAt;   // captured now: S can move to another post while the writes are in flight
-  const slot=index.find(x=>x.id===id); if(slot){ slot.name=name; slot.type=type; slot.updatedAt=updatedAt; } else index.push({id,name,type,updatedAt});
+  const id=S.id, doc=stripDoc(S), name=postName(S), type=S.type, updatedAt=S.updatedAt, pub=S.publishOn||'';   // captured now: S can move to another post while the writes are in flight
+  const slot=index.find(x=>x.id===id); if(slot){ slot.name=name; slot.type=type; slot.updatedAt=updatedAt; slot.pub=pub; } else index.push({id,name,type,updatedAt,pub});
   try{
     if(!db){ setSave('Not saved: no storage here',true); return; }
     if(JSON.stringify(doc).length>250000){ dirty=true; setSave('Too big to save: shorten the post',true); return; }
-    await Promise.all([ db.doc('posts/'+id).set(doc), db.doc('postindex/'+id).set({name,type,updatedAt}) ]);
+    await Promise.all([ db.doc('posts/'+id).set(doc), db.doc('postindex/'+id).set({name,type,updatedAt,pub}) ]);
     setSave('Saved '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}));
   }catch(e){ dirty=true; setSave('Could not save ('+(e&&e.code||'error')+')',true); }
   renderTop();
@@ -1340,7 +1373,7 @@ async function save(){
 function newPost(type){
   const d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   S=Object.assign(blankDoc(type),{id:'p-'+stamp+'-'+uid()});
-  index.push({id:S.id,name:postName(S),type:S.type,updatedAt:S.updatedAt});
+  index.push({id:S.id,name:postName(S),type:S.type,updatedAt:S.updatedAt,pub:''});
   dirty=false; closeModal(); loadIntoUI(); scheduleSave();
   $('#fTitle').focus();
 }
@@ -1356,7 +1389,7 @@ async function deletePost(){
   const id=S.id;
   try{ await Promise.all([ db.doc('posts/'+id).delete(), db.doc('postindex/'+id).delete() ]); }catch(e){}
   index=index.filter(x=>x.id!==id); S=null; dirty=false; clearTimeout(saveTimer);
-  if(index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id); else showEmpty();
+  if(index.length) await openPost(startId()); else showEmpty();
   toast('Post deleted');
 }
 
@@ -1387,6 +1420,7 @@ function shopifyRows(){
   add('Right column','Featured image alt text',S.alt.trim());
   add('Right column','Author (Shopify\'s own Author box: set it to the same name)',effByline());
   add('Right column','Tags',S.tags.trim());
+  if(S.publishOn) add('Right column','Visibility: set a publish date and time', dateLabel(S.publishOn)+', 9:00 AM');
   add('Right column','Theme template (bottom of the right column)',COLUMNS[S.column]? COLUMNS[S.column].tpl : 'Default article',{always:true});
   return rows;
 }
@@ -1554,9 +1588,9 @@ async function boot(){
     }
   }catch(e){ setSave('Saved posts could not load',true); }
   renderTop(); setSave(db?'':'Not saved between visits here');
-  if(db && index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id);
+  if(db && index.length) await openPost(startId());
 }
 boot();
-window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge };
+window.__pc={ get S(){return S}, dateLabel, daysUntil, sortedIndex, startId, get index(){return index}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge };
 </script>
 </body></html>
