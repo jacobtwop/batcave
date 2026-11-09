@@ -291,7 +291,7 @@ details.card[open]>summary{margin-bottom:8px}
       <div class="card">
         <h2>This post</h2>
         <div class="fld"><label class="f" for="fType">Kind of post</label><select id="fType" style="width:100%"></select><p class="hint" id="typeHint" style="margin:6px 0 0"></p></div>
-        <div class="fld"><label class="f" for="fColumn">Column</label><select id="fColumn" style="width:100%"><option value="">None: a regular Batcave post</option><option value="spoiler">Spoiler Alert</option><option value="book">Batcave Book Club</option></select><p class="hint" id="columnHint" style="margin:6px 0 0"></p></div>
+        <div class="fld"><label class="f" for="fColumn">Column</label><select id="fColumn" style="width:100%"><option value="">None: a regular Batcave post</option><option value="spoiler">Spoiler Alert!</option><option value="book">Batcave Book Club</option></select><p class="hint" id="columnHint" style="margin:6px 0 0"></p><div id="outlineBox" hidden style="margin-top:8px"><button class="btn sm" id="btnOutline" type="button">Load the outline</button><span id="outlineAsk" hidden>This replaces the text you have typed. <button class="btn sm danger" id="btnOutlineYes" type="button">Yes, replace</button> <button class="btn sm" id="btnOutlineNo" type="button">Keep my text</button></span></div></div>
         <div class="fld" id="readFld" hidden><label class="f" for="fRead">Read status</label><select id="fRead" style="width:100%"><option value="">No status (an announcement)</option><option value="First Read">First Read: we read it first</option><option value="Reread">Reread</option></select></div>
         <div class="fld"><label class="f" for="fTags">Tags</label><input id="fTags" type="text" data-f="tags" style="width:100%" placeholder="Guides, Pull List"><div class="chips" id="tagChips"></div><p class="hint" style="margin:6px 0 0">The first tag is the chip above the title.</p></div>
         <div class="fld"><label class="f" for="fByline">Byline (optional)</label><input id="fByline" type="text" data-f="byline" style="width:100%" placeholder="Who signs this post"><p class="hint" id="bylineHint" style="margin:6px 0 0"></p></div>
@@ -671,11 +671,11 @@ const TYPES = {
 const TYPE_ORDER = ['guide','short','staff','news'];
 const CREW = 'The Bat City Crew';   // the default byline for guides, short posts and news (Jacob, Nov 5)
 const COLUMNS = {   // the two Batcave columns (Nov 8). A column is a tag plus a theme template; the tag comes first in the tag list.
-  spoiler:{label:'Spoiler Alert',     tag:'Spoiler Alert',     tpl:'spoiler-alert', file:'article.spoiler-alert', hint:'This post gives away the ending. The theme prints a warning strip under the title.'},
+  spoiler:{label:'Spoiler Alert!',    tag:'Spoiler Alert!',     tpl:'spoiler-alert', file:'article.spoiler-alert', hint:'This post gives away the ending. The theme prints a warning strip under the title.'},
   book:   {label:'Batcave Book Club', tag:'Batcave Book Club', tpl:'book-club',     file:'article.book-club',     hint:'Pull quotes get an "Our take" tab. First Read or Reread shows in a banner under the title.'}
 };
 const READS = ['First Read','Reread'];
-const COL_TAGS = new Set(['spoiler alert','batcave book club','first read','reread']);
+const COL_TAGS = new Set(['spoiler alert','spoiler alert!','batcave book club','first read','reread']);   // both spellings: drafts saved before the exclamation point still match
 const OLD_CREW = 'Bat City Games & Comics Crew';   // the earlier default; drafts saved with it are moved over on load
 
 const SCAFFOLD = {
@@ -711,6 +711,31 @@ news:
 <h2>[What to expect at the shop]</h2>
 <p>[The details a regular would ask for: what it is, which night, what to bring.]</p>
 <p>[How to be ready: a pull list nudge, a named night, or a restock alert.]</p>`
+};
+
+const COL_OUTLINE = {   // starter outlines for the two columns (Nov 8). Loaded when a column is picked and the body is still a starter or blank.
+spoiler:
+`<p>[Cold open. Two sentences that set the scene and stop right before the reveal. Put the reveal itself in the black bar. Click the bar to type over it.] <span class="bc-redact" tabindex="0">[the reveal]</span></p>
+<h2>The short version</h2>
+<p>[The whole story and how it ends, in one short paragraph. Say it plainly. The warning strip under the title has already done the polite part.]</p>
+<h2>How it gets there</h2>
+<p>[The beats in order, in two or three short paragraphs. For each one, what happens, then why it lands.]</p>
+<blockquote><p>[One line worth arguing about. A pull quote.]</p></blockquote>
+<h2>What to argue about</h2>
+<p>[Two or three things readers will fight over at the counter. Take a side, kindly. No gatekeeping.]</p>
+<h2>If you have not read it yet</h2>
+<p>[Where it sits in the shop, who to ask at the counter, and the named night or new comics Wednesday that fits. Leave prices out.]</p>`,
+book:
+`<p>[Lede. What we are reading, whether it is a First Read or a Reread, and the one reason now is the time.]</p>
+<h2>What it is</h2>
+<p>[Sourced context: who made it, when, and where it sits in the story. Two or three short paragraphs. Check every date and credit against a source you opened.]</p>
+<h2>Why now</h2>
+<p>[The hook: a show, a film, a new issue or an anniversary. Give the date, and label anything unconfirmed.]</p>
+<blockquote><p>[GAP: our take goes here, in our words, after reading. It shows under the Our take tab. Leave it empty until then.]</p></blockquote>
+<h2>Where we landed</h2>
+<p>[GAP: the reactions after reading, in our words. Left empty on purpose until then.]</p>
+<h2>Read along</h2>
+<p>[Where to find the book at the counter, and the night to talk about it. Leave prices out.]</p>`
 };
 
 const NIGHTS = [
@@ -772,6 +797,7 @@ function mergeDoc(d){
   o.type = type; delete o.cap;
   o.night = Object.assign(b.night, d.night||{}); o.confirm = Object.assign({}, d.confirm||{});
   o.body = typeof d.body === 'string' ? d.body : '';
+  o.tags = (o.column==='spoiler')? String(o.tags||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>x.toLowerCase()==='spoiler alert'? COLUMNS.spoiler.tag : x).join(', ') : o.tags;   // the old tag becomes Spoiler Alert!
   o.column = COLUMNS[o.column]? o.column : ''; o.read = (o.column==='book' && READS.indexOf(o.read)>=0)? o.read : '';   // drafts from before the columns open with none
   if((o.byline||'').trim()===OLD_CREW) o.byline = TYPES[type].crew? CREW : '';   // the earlier default byline becomes the new one
   return o;
@@ -1114,7 +1140,7 @@ function runChecks(){
   if(S.column){
     const col=COLUMNS[S.column], first=firstTag().toLowerCase()===col.tag.toLowerCase();
     add(first?'ok':'warn', first? 'Column tag is first: '+col.tag : 'The first tag should be '+col.tag+' so the chip and the column page match');
-    if(S.column==='spoiler') add('info','Spoiler Alert: this post may give away the ending. The warning strip under the title says so.');
+    if(S.column==='spoiler') add('info','Spoiler Alert!: this post may give away the ending. The warning strip under the title says so.');
     if(S.column==='book') add(S.read?'ok':'info', S.read? 'Banner under the title will say '+S.read : 'Pick First Read or Reread so the banner shows (skip it for an announcement)');
     add('info','In Shopify, set the theme template to '+col.tpl+'.');
     if(/jacob/i.test(S.byline) || /\bJacob\b/.test(textFromHtml(S.body))) add('warn','Jacob\'s name stays out of the columns (Nov 8). Use we, or sign it The Bat City Crew.');
@@ -1239,7 +1265,34 @@ function syncColumnUI(){
   $('#fColumn').value=S.column||''; $('#fRead').value=S.read||'';
   $('#readFld').hidden = S.column!=='book';
   const col=COLUMNS[S.column];
-  $('#columnHint').textContent = col? col.hint+' Shopify theme template: '+col.tpl+'.' : 'Spoiler Alert and Batcave Book Club are columns with their own look. Leave this on None for everything else.';
+  $('#columnHint').textContent = col? col.hint+' Shopify theme template: '+col.tpl+'.' : 'Spoiler Alert! and Batcave Book Club are columns with their own look. Leave this on None for everything else. Picking a column loads its outline while the body is still a starter.';
+  syncOutlineUI();
+}
+let outlineOffer = false;   // true after a column or kind change left typed text alone: shows the "Load the outline" button
+function outlineFor(){ return COLUMNS[S.column]? COL_OUTLINE[S.column] : SCAFFOLD[S.type]; }
+function outlineLabel(){ return COLUMNS[S.column]? COLUMNS[S.column].label+' outline' : TYPES[S.type].label.toLowerCase()+' outline'; }
+const normHtml = h => cleanHtml(h||'').replace(/\s+/g,' ').trim();
+function bodyIsStarter(){   // blank, or still exactly one of the starter outlines
+  syncBody();
+  if(!textFromHtml(S.body).trim()) return true;
+  const cur=normHtml(S.body);
+  return Object.values(SCAFFOLD).concat(Object.values(COL_OUTLINE)).some(t=>normHtml(t)===cur);
+}
+function loadOutline(){   // puts the outline for the current column or kind into the body
+  S.body=cleanHtml(outlineFor()); dirty=true; loadIntoUI(); scheduleSave();
+}
+function outlineNudge(){  // after a column or kind change
+  if(!S) return;
+  syncBody();
+  if(normHtml(S.body)===normHtml(outlineFor())){ outlineOffer=false; syncOutlineUI(); return; }
+  if(bodyIsStarter()){ loadOutline(); toast('Loaded the '+outlineLabel()); return; }
+  outlineOffer=true; syncOutlineUI(); toast('Your text was left alone. The button under Column loads the outline.');
+}
+function syncOutlineUI(){
+  const box=$('#outlineBox'); if(!box) return;
+  box.hidden=!(S && outlineOffer);
+  $('#outlineAsk').hidden=true; $('#btnOutline').hidden=false;
+  if(S && outlineOffer) $('#btnOutline').textContent='Load the '+outlineLabel();
 }
 function tplLine(){
   const col=COLUMNS[S.column];
@@ -1257,6 +1310,7 @@ function applyType(){
   document.querySelectorAll('.sheet textarea').forEach(autosize);   // a card that was hidden measured as zero tall
 }
 function loadIntoUI(){
+  outlineOffer=false;
   $('#empty').hidden=true; $('#sheetWrap').hidden=false; $('#bar').hidden=false;
   const clean=cleanHtml(S.body); S.body=clean;
   ed.innerHTML=clean || '<p><br></p>';
@@ -1411,13 +1465,16 @@ function wire(){
     if(!nu.crew && S.byline.trim()===CREW) S.byline='';          // the crew byline does not follow a staff pick
     else if(nu.crew && !S.byline.trim()) S.byline=CREW;
     $('#fByline').value=S.byline;
-    applyType(); scheduleSave(); refresh();
+    applyType(); outlineNudge(); scheduleSave(); refresh();
   };
   $('#fColumn').onchange=e=>{
     if(!S) return;
     S.column=e.target.value; if(S.column!=='book') S.read='';
-    applyColumnTags(); syncColumnUI(); scheduleSave(); refresh();
+    applyColumnTags(); syncColumnUI(); outlineNudge(); scheduleSave(); refresh();
   };
+  $('#btnOutline').onclick=()=>{ $('#btnOutline').hidden=true; $('#outlineAsk').hidden=false; };
+  $('#btnOutlineNo').onclick=()=>{ $('#outlineAsk').hidden=true; $('#btnOutline').hidden=false; };
+  $('#btnOutlineYes').onclick=()=>{ if(!S) return; loadOutline(); toast('Loaded the '+outlineLabel()); };
   $('#fRead').onchange=e=>{
     if(!S) return;
     S.read=e.target.value;
@@ -1500,6 +1557,6 @@ async function boot(){
   if(db && index.length) await openPost(index.slice().sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0].id);
 }
 boot();
-window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS };
+window.__pc={ get S(){return S}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge };
 </script>
 </body></html>
