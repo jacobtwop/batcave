@@ -40,6 +40,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brand span{font:700 10px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--hot)}
 .issuebox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
 .issuebox select{max-width:260px}
+.calfrom{display:inline-flex;align-items:center;gap:6px;margin-left:6px;font:600 11px/1 var(--ui);color:var(--muted)}
+.calfrom input{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:500 12px/1.2 var(--ui);color:var(--ink);min-width:0}
+.calfrom input:focus{border-color:var(--accent)}
 .grow{flex:1 1 auto}
 .savestate{font:500 12px/1 var(--ui);color:var(--muted);min-width:78px;text-align:right}
 .savestate.bad{color:var(--warn)}
@@ -213,6 +216,7 @@ details.card[open]>summary{margin-bottom:8px}
       <button class="btn sm" id="btnNew" type="button">New post</button>
       <button class="btn sm danger" id="btnDel" type="button">Delete</button>
       <span id="delAsk" hidden>Delete this post? <button class="btn sm danger" id="btnDelYes" type="button">Yes, delete</button> <button class="btn sm" id="btnDelNo" type="button">Keep</button></span>
+      <span class="calfrom" title="Hides the days before this date in the post list. Use it for weeks you have already scheduled in Shopify. Blank starts the list this week."><label for="calFrom">Calendar starts</label><input type="date" id="calFrom"><button class="btn sm" id="calReset" type="button" hidden>This week</button></span>
     </div>
     <span class="grow"></span>
     <span class="savestate" id="saveState" role="status"></span>
@@ -788,10 +792,14 @@ const NO_SLOT={'2026-12-25':1};                                                 
 function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function addDays(d,n){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()+n); return x; }
 function mondayOf(d){ return addDays(d,-((d.getDay()+6)%7)); }
+// Nov 10: where the week list starts. Weeks you already scheduled in Shopify and deleted from here would otherwise show as open. Kept per browser.
+let calFrom='';
+try{ calFrom=localStorage.getItem('bc.calFrom')||''; }catch(e){}
+if(!/^\d{4}-\d{2}-\d{2}$/.test(calFrom)) calFrom='';
 function weekRows(){
-  const {dated,rest}=sortedIndex(), t=todayISO(), mon0=mondayOf(dateObj(t)), MAXW=26, limit=isoOf(addDays(mon0,7*MAXW));
+  const {dated,rest}=sortedIndex(), t=todayISO(), thisMon=isoOf(mondayOf(dateObj(t))), start=(calFrom&&calFrom>thisMon)?calFrom:thisMon, mon0=mondayOf(dateObj(start)), MAXW=26, limit=isoOf(addDays(mon0,7*MAXW));
   const by={}, earlier=[], later=[];
-  dated.forEach(x=>{ if(x.pub<isoOf(mon0)) earlier.push(x); else if(x.pub>=limit) later.push(x); else (by[x.pub]=by[x.pub]||[]).push(x); });
+  dated.forEach(x=>{ if(x.pub<start) earlier.push(x); else if(x.pub>=limit) later.push(x); else (by[x.pub]=by[x.pub]||[]).push(x); });
   let last=0;
   Object.keys(by).forEach(iso=>{ const w=Math.round((mondayOf(dateObj(iso))-mon0)/(7*864e5)); if(w>last) last=w; });
   const n=Math.max(4,last+1), weeks=[];
@@ -799,14 +807,17 @@ function weekRows(){
     const mon=addDays(mon0,7*w), sat=addDays(mon,5), rows=[]; let filled=0, total=0;
     for(let i=0;i<7;i++){
       const iso=isoOf(addDays(mon,i)), posts=by[iso]||[], slot=!NO_SLOT[iso], note=DAY_NOTES[iso]?' ['+DAY_NOTES[iso]+']':'';
+      if(iso<start) continue;                               // before the calendar start
       if(i===6 && !posts.length) continue;                  // Sunday shows only when something is dated on it
+      if(!posts.length && iso<t) continue;                  // an empty day that has already gone by
       const head=dateLabel(iso)+(iso===t?' (today)':'');
       if(i<6){ if(slot) total++; if(posts.length) filled++; }
       if(posts.length) posts.forEach(x=>rows.push({iso,id:x.id,text:head+' · '+(x.name||x.id)+note}));
       else { const isOpen=slot&&iso>=t; rows.push({iso,id:null,open:isOpen,text:head+' · '+(isOpen?'open (start a post)':'no post')+note}); }
     }
-    const same=mon.getMonth()===sat.getMonth();
-    weeks.push({monday:isoOf(mon),filled,total,rows,label:(w===0?'This week: ':'')+shortDate(mon)+' to '+(same?sat.getDate():shortDate(sat))+' · '+filled+' of '+total+' filled'});
+    if(!rows.length) continue;
+    const from=(w===0&&start>isoOf(mon))? dateObj(start) : mon, same=from.getMonth()===sat.getMonth();
+    weeks.push({monday:isoOf(mon),filled,total,rows,label:(isoOf(mon)===thisMon?'This week: ':'')+shortDate(from)+' to '+(same?sat.getDate():shortDate(sat))+(total?' · '+filled+' of '+total+' filled':'')});
   }
   return {weeks,earlier,later,rest,hasDated:dated.length>0};
 }
@@ -1607,6 +1618,9 @@ function wire(){
   $('#postSel').onchange=async e=>{ const id=e.target.value; await flush(); if(id.indexOf('open:')===0){ openChooser(id.slice(5)); renderTop(); return; } openPost(id); };
   $('#btnDel').onclick=()=>{ if(!S) return; $('#delAsk').hidden=false; $('#btnDel').hidden=true; };
   $('#btnDelNo').onclick=()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; };
+  const cf=$('#calFrom'), cr=$('#calReset'); cf.value=calFrom; cr.hidden=!calFrom;
+  const setFrom=v=>{ calFrom=/^\d{4}-\d{2}-\d{2}$/.test(v||'')? v : ''; cf.value=calFrom; cr.hidden=!calFrom; try{ if(calFrom) localStorage.setItem('bc.calFrom',calFrom); else localStorage.removeItem('bc.calFrom'); }catch(e){} renderTop(); };
+  cf.onchange=()=>setFrom(cf.value); cr.onclick=()=>setFrom('');
   $('#btnDelYes').onclick=async()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; await deletePost(); };
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
   window.addEventListener('pagehide',()=>{ flush(); });
