@@ -782,6 +782,34 @@ function sortedIndex(){
   const rest=index.filter(x=>!x.pub).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
   return {dated,rest};
 }
+/* ---------- the week view of the post list (Nov 10) ---------- */
+const DAY_NOTES={'2026-11-26':'Thanksgiving','2026-12-24':'closes 6 PM','2026-12-25':'closed'};   // shop days worth a word in the list
+const NO_SLOT={'2026-12-25':1};                                                                  // not a posting day
+function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function addDays(d,n){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()+n); return x; }
+function mondayOf(d){ return addDays(d,-((d.getDay()+6)%7)); }
+function weekRows(){
+  const {dated,rest}=sortedIndex(), t=todayISO(), mon0=mondayOf(dateObj(t)), MAXW=26, limit=isoOf(addDays(mon0,7*MAXW));
+  const by={}, earlier=[], later=[];
+  dated.forEach(x=>{ if(x.pub<isoOf(mon0)) earlier.push(x); else if(x.pub>=limit) later.push(x); else (by[x.pub]=by[x.pub]||[]).push(x); });
+  let last=0;
+  Object.keys(by).forEach(iso=>{ const w=Math.round((mondayOf(dateObj(iso))-mon0)/(7*864e5)); if(w>last) last=w; });
+  const n=Math.max(4,last+1), weeks=[];
+  for(let w=0;w<n;w++){
+    const mon=addDays(mon0,7*w), sat=addDays(mon,5), rows=[]; let filled=0, total=0;
+    for(let i=0;i<7;i++){
+      const iso=isoOf(addDays(mon,i)), posts=by[iso]||[], slot=!NO_SLOT[iso], note=DAY_NOTES[iso]?' ['+DAY_NOTES[iso]+']':'';
+      if(i===6 && !posts.length) continue;                  // Sunday shows only when something is dated on it
+      const head=dateLabel(iso)+(iso===t?' (today)':'');
+      if(i<6){ if(slot) total++; if(posts.length) filled++; }
+      if(posts.length) posts.forEach(x=>rows.push({iso,id:x.id,text:head+' · '+(x.name||x.id)+note}));
+      else rows.push({iso,id:null,text:head+' · '+(slot&&iso>=t?'open':'no post')+note});
+    }
+    const same=mon.getMonth()===sat.getMonth();
+    weeks.push({monday:isoOf(mon),filled,total,rows,label:(w===0?'This week: ':'')+shortDate(mon)+' to '+(same?sat.getDate():shortDate(sat))+' · '+filled+' of '+total+' filled'});
+  }
+  return {weeks,earlier,later,rest,hasDated:dated.length>0};
+}
 function startId(){   // the next post to publish, else the one edited last
   const {dated,rest}=sortedIndex(), t=todayISO(), up=dated.filter(x=>x.pub>=t);
   const pick=up[0]||rest[0]||dated[dated.length-1];
@@ -1220,18 +1248,15 @@ function scheduleRefresh(){ clearTimeout(checkTimer); checkTimer=setTimeout(refr
 /* ---------- build the screens ---------- */
 function renderTop(){
   const sel=$('#postSel'); sel.innerHTML='';
-  const mk=(x,dated)=>{
-    const o=document.createElement('option'); o.value=x.id;
-    const nm=x.name||x.id;
-    o.textContent = dated? (daysUntil(x.pub)<0? 'Past \u00b7 ' : '')+dateLabel(x.pub)+' \u00b7 '+nm : nm;
-    if(S&&x.id===S.id) o.selected=true; return o;
-  };
-  const {dated,rest}=sortedIndex();
-  if(dated.length){
-    const g1=document.createElement('optgroup'); g1.label='Scheduled, soonest first';
-    dated.forEach(x=>g1.appendChild(mk(x,true))); sel.appendChild(g1);
-    if(rest.length){ const g2=document.createElement('optgroup'); g2.label='No date yet'; rest.forEach(x=>g2.appendChild(mk(x,false))); sel.appendChild(g2); }
-  } else rest.forEach(x=>sel.appendChild(mk(x,false)));
+  const opt=(id,text)=>{ const o=document.createElement('option'); o.value=id||''; o.textContent=text; if(id&&S&&id===S.id) o.selected=true; if(!id) o.disabled=true; return o; };
+  const group=(label,items)=>{ const g=document.createElement('optgroup'); g.label=label; items.forEach(o=>g.appendChild(o)); sel.appendChild(g); };
+  const W=weekRows();
+  if(W.hasDated){
+    W.weeks.forEach(wk=>group(wk.label, wk.rows.map(r=>opt(r.id,r.text))));
+    if(W.earlier.length) group('Earlier (date passed)', W.earlier.map(x=>opt(x.id,dateLabel(x.pub)+' · '+(x.name||x.id))));
+    if(W.later.length) group('Further out', W.later.map(x=>opt(x.id,dateLabel(x.pub)+' · '+(x.name||x.id))));
+    if(W.rest.length) group('No date yet', W.rest.map(x=>opt(x.id,x.name||x.id)));
+  } else W.rest.forEach(x=>sel.appendChild(opt(x.id,x.name||x.id)));
   $('#btnCopy').disabled=!S; $('#btnFields').disabled=!S; $('#btnDel').disabled=!S;
 }
 function buildTypeSelect(){
@@ -1599,6 +1624,6 @@ async function boot(){
   if(db && index.length) await openPost(startId());
 }
 boot();
-window.__pc={ get S(){return S}, dateLabel, daysUntil, sortedIndex, startId, get index(){return index}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge };
+window.__pc={ get S(){return S}, weekRows, dateLabel, daysUntil, sortedIndex, startId, get index(){return index}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge };
 </script>
 </body></html>
