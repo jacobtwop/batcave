@@ -803,7 +803,7 @@ function weekRows(){
       const head=dateLabel(iso)+(iso===t?' (today)':'');
       if(i<6){ if(slot) total++; if(posts.length) filled++; }
       if(posts.length) posts.forEach(x=>rows.push({iso,id:x.id,text:head+' · '+(x.name||x.id)+note}));
-      else rows.push({iso,id:null,text:head+' · '+(slot&&iso>=t?'open':'no post')+note});
+      else { const isOpen=slot&&iso>=t; rows.push({iso,id:null,open:isOpen,text:head+' · '+(isOpen?'open (start a post)':'no post')+note}); }
     }
     const same=mon.getMonth()===sat.getMonth();
     weeks.push({monday:isoOf(mon),filled,total,rows,label:(w===0?'This week: ':'')+shortDate(mon)+' to '+(same?sat.getDate():shortDate(sat))+' · '+filled+' of '+total+' filled'});
@@ -1248,11 +1248,11 @@ function scheduleRefresh(){ clearTimeout(checkTimer); checkTimer=setTimeout(refr
 /* ---------- build the screens ---------- */
 function renderTop(){
   const sel=$('#postSel'); sel.innerHTML='';
-  const opt=(id,text)=>{ const o=document.createElement('option'); o.value=id||''; o.textContent=text; if(id&&S&&id===S.id) o.selected=true; if(!id) o.disabled=true; return o; };
+  const opt=(id,text,openIso)=>{ const o=document.createElement('option'); o.value=id||(openIso?'open:'+openIso:''); o.textContent=text; if(id&&S&&id===S.id) o.selected=true; if(!id&&!openIso) o.disabled=true; return o; };
   const group=(label,items)=>{ const g=document.createElement('optgroup'); g.label=label; items.forEach(o=>g.appendChild(o)); sel.appendChild(g); };
   const W=weekRows();
   if(W.hasDated){
-    W.weeks.forEach(wk=>group(wk.label, wk.rows.map(r=>opt(r.id,r.text))));
+    W.weeks.forEach(wk=>group(wk.label, wk.rows.map(r=>opt(r.id,r.text,r.open?r.iso:''))));
     if(W.earlier.length) group('Earlier (date passed)', W.earlier.map(x=>opt(x.id,dateLabel(x.pub)+' · '+(x.name||x.id))));
     if(W.later.length) group('Further out', W.later.map(x=>opt(x.id,dateLabel(x.pub)+' · '+(x.name||x.id))));
     if(W.rest.length) group('No date yet', W.rest.map(x=>opt(x.id,x.name||x.id)));
@@ -1403,10 +1403,11 @@ async function save(){
   }catch(e){ dirty=true; setSave('Could not save ('+(e&&e.code||'error')+')',true); }
   renderTop();
 }
-function newPost(type){
+function newPost(type,date){
   const d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
   S=Object.assign(blankDoc(type),{id:'p-'+stamp+'-'+uid()});
-  index.push({id:S.id,name:postName(S),type:S.type,updatedAt:S.updatedAt,pub:''});
+  if(/^\d{4}-\d{2}-\d{2}$/.test(date||'')) S.publishOn=date;   // Nov 10: started from an open day in the week list
+  index.push({id:S.id,name:postName(S),type:S.type,updatedAt:S.updatedAt,pub:S.publishOn||''});
   dirty=false; closeModal(); loadIntoUI(); scheduleSave();
   $('#fTitle').focus();
 }
@@ -1495,10 +1496,10 @@ async function copyBody(){
   const ok=await copyText(S.body,null);
   openFields(ok);
 }
-function openChooser(){
+function openChooser(date){
   const root=$('#modalRoot');
-  root.innerHTML='<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><h2 id="mt">What kind of post?</h2><div class="types chooser" id="chooseTypes" style="max-width:none"></div><div class="mrow"><span class="grow"></span><button class="btn" id="mClose" type="button">Cancel</button></div></div></div>';
-  typeButtons($('#chooseTypes'),async k=>{ await flush(); newPost(k); });
+  root.innerHTML='<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><h2 id="mt">What kind of post'+(date?' for '+dateLabel(date):'')+'?</h2><div class="types chooser" id="chooseTypes" style="max-width:none"></div><div class="mrow"><span class="grow"></span><button class="btn" id="mClose" type="button">Cancel</button></div></div></div>';
+  typeButtons($('#chooseTypes'),async k=>{ await flush(); newPost(k,date); });
   $('#mClose').onclick=closeModal; $('#scrim').addEventListener('click',e=>{ if(e.target.id==='scrim') closeModal(); });
 }
 
@@ -1603,7 +1604,7 @@ function wire(){
   // top bar
   $('#btnCopy').onclick=copyBody; $('#btnFields').onclick=()=>openFields(null);
   $('#btnNew').onclick=()=>{ flush(); openChooser(); };
-  $('#postSel').onchange=async e=>{ const id=e.target.value; await flush(); openPost(id); };
+  $('#postSel').onchange=async e=>{ const id=e.target.value; await flush(); if(id.indexOf('open:')===0){ openChooser(id.slice(5)); renderTop(); return; } openPost(id); };
   $('#btnDel').onclick=()=>{ if(!S) return; $('#delAsk').hidden=false; $('#btnDel').hidden=true; };
   $('#btnDelNo').onclick=()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; };
   $('#btnDelYes').onclick=async()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; await deletePost(); };
