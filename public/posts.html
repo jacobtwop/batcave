@@ -806,7 +806,7 @@ function blankDoc(type){
   };
 }
 function mergeDoc(d){
-  // A draft saved as a capsule review (not a blog post any more) opens as a short post; its card answers are not carried over.
+  // A draft saved under a post kind that no longer exists opens as a short post; any old card answers are not carried over.
   const type = TYPES[d.type] ? d.type : 'short';
   const b = blankDoc(type);
   const o = Object.assign(b, d);
@@ -831,6 +831,13 @@ const escT = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt
 const escA = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function okHref(h){ h=(h||'').trim(); return /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(h) ? h : ''; }
 function okSrc(h){ h=(h||'').trim(); return /^(https:\/\/|\/(?!\/))/i.test(h) ? h : ''; }
+// Jump-link anchors (Nov 10): headings and paragraphs keep a plain id, so a glossary or index can link to #g-ankh. A repeated id is dropped (Enter in the editor can copy one onto the new line), and anything odd is left off.
+let idSeen = new Set();
+function idAttr(el){
+  const id=(el.getAttribute('id')||'').trim();
+  if(!/^[A-Za-z][A-Za-z0-9_-]{0,79}$/.test(id) || idSeen.has(id)) return '';
+  idSeen.add(id); return ' id="'+id+'"';
+}
 function inl(n){
   if(n.nodeType===3) return escT(n.nodeValue.replace(/ /g,' ').replace(/[ \t\r\n]+/g,' '));
   if(n.nodeType!==1) return '';
@@ -848,8 +855,8 @@ function inl(n){
 function tidyInline(s){ return s.replace(/^(\s|<br>)+/,'').replace(/(\s|<br>)+$/,'').replace(/ {2,}/g,' ').replace(/ ?<br> ?/g,'<br>'); }
 function blockOf(el){
   const t = el.tagName;
-  if(t==='H1'||t==='H2') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h2>'+c+'</h2>' : ''; }
-  if(/^H[3-6]$/.test(t)) { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h3>'+c+'</h3>' : ''; }
+  if(t==='H1'||t==='H2') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h2'+idAttr(el)+'>'+c+'</h2>' : ''; }
+  if(/^H[3-6]$/.test(t)) { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h3'+idAttr(el)+'>'+c+'</h3>' : ''; }
   if(t==='UL'||t==='OL'){
     const items=[];
     el.childNodes.forEach(li=>{
@@ -871,7 +878,7 @@ function blockOf(el){
     return inner? '<blockquote>\n'+inner+'\n</blockquote>' : '';
   }
   if(t==='HR') return '<hr>';
-  if(t==='P') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return (c.replace(/<br>/g,'').trim()||/<img/.test(c))? '<p>'+c+'</p>' : ''; }
+  if(t==='P') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return (c.replace(/<br>/g,'').trim()||/<img/.test(c))? '<p'+idAttr(el)+'>'+c+'</p>' : ''; }
   return serializeRoot(el);   // DIV, TABLE, SECTION and the rest: keep the content, drop the wrapper
 }
 function serializeRoot(root){
@@ -885,6 +892,7 @@ function serializeRoot(root){
   return out.join('\n');
 }
 function cleanHtml(html){
+  idSeen = new Set();
   const d=new DOMParser().parseFromString('<body>'+html+'</body>','text/html');
   return serializeRoot(d.body);
 }
