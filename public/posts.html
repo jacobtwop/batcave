@@ -171,6 +171,34 @@ details.card[open]>summary{margin-bottom:8px}
 .sheet .nightbody input.nlink{font:400 13px/1.4 var(--ui)}
 .sheet .nightpick{width:100%;border:1px solid var(--rule);border-radius:4px;background:#fff;color:var(--n);padding:5px 8px;font:600 13px/1.3 var(--ui)}
 
+/* looks and widgets (Nov 18) */
+.sw{display:flex;gap:9px;align-items:flex-start;margin:0 0 9px;cursor:pointer}
+.sw>span{min-width:0}
+.sw b{display:block;font-size:13px;line-height:1.3}
+.sw input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:0 0 auto;width:34px;height:20px;border-radius:20px;background:var(--line);position:relative;cursor:pointer;margin:1px 0 0;border:0;transition:background .12s}
+.sw input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel);transition:transform .12s}
+.sw input[type=checkbox]:checked{background:var(--accent)}
+.sw input[type=checkbox]:checked::after{transform:translateX(14px)}
+.sw input[type=checkbox]:disabled{opacity:.5;cursor:default}
+.wgHead{margin:12px 0 7px;font:800 11px/1.3 var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.wgf{margin:-2px 0 11px 43px;display:grid;gap:4px}
+.wgf input[type=text]{width:100%;font-size:12.5px;padding:5px 7px}
+.wgrow{display:grid;gap:4px}
+.wgrow.two{grid-template-columns:92px minmax(0,1fr)}
+.wgrow.three{grid-template-columns:minmax(0,1fr) auto}
+.wgrow.three>input:last-child{grid-column:1 / -1}
+.wgf>.btn{justify-self:start}
+.card .lookline{margin:0 0 10px}
+.sheet .prose .bc-wg{margin:1.4em 0;border:2px dashed var(--p);background:var(--lav);border-radius:6px;font:400 14px/1.45 var(--ui);color:var(--n);-webkit-user-select:none;user-select:none;cursor:default}
+.sheet .prose .bc-wg-h{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 10px;background:var(--pd);color:#fff;font:800 11px/1.3 var(--head);letter-spacing:.12em;text-transform:uppercase}
+.sheet .prose .bc-wg-h .g{flex:1 1 auto}
+.sheet .prose .bc-wg-l{background:var(--l);color:var(--n);padding:2px 6px;border-radius:3px;letter-spacing:.08em}
+.sheet .prose .bc-wg-h button{background:#fff;color:var(--pd);border:0;border-radius:4px;width:28px;height:28px;font:800 16px/1 var(--ui);cursor:pointer;padding:0}
+.sheet .prose .bc-wg-h button:hover{background:var(--l)}
+.sheet .prose .bc-wg-h button:focus-visible{outline:3px solid var(--hot);outline-offset:1px}
+.sheet .prose .bc-wg-b{padding:10px 12px;display:grid;gap:3px}
+.sheet .prose .bc-wg-f{margin-top:4px;font-size:12px;color:var(--s)}
+
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-weight:700;font-size:13px;box-shadow:var(--shadow);z-index:60;max-width:calc(100% - 32px)}
 .scrim{position:fixed;inset:0;background:rgba(18,10,26,.55);display:grid;place-items:center;padding:16px;z-index:50}
 .modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);width:min(760px,100%);max-height:calc(100% - 8px);overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
@@ -263,9 +291,8 @@ details.card[open]>summary{margin-bottom:8px}
           <div class="prose" id="postBody" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Post body"></div>
 
           <div class="nightwrap" id="nightWrap">
-            <button class="addnight" id="addNight" type="button">Add a named night to the end of this post</button>
             <section class="nightcard" id="nightCard" aria-label="Named night card" hidden>
-              <p class="tag"><span>Named night</span><button class="btn sm ghost" id="rmNight" type="button">Remove</button></p>
+              <p class="tag"><span>Named night</span></p>
               <div class="nightgrid">
                 <div class="nighttile">
                   <input type="text" data-f="night.day" aria-label="Day" placeholder="WED" maxlength="4">
@@ -300,6 +327,13 @@ details.card[open]>summary{margin-bottom:8px}
         <div class="fld" id="readFld" hidden><label class="f" for="fRead">Read status</label><select id="fRead" style="width:100%"><option value="">No status (an announcement)</option><option value="First Read">First Read: we read it first</option><option value="Reread">Reread</option></select></div>
         <div class="fld"><label class="f" for="fTags">Tags</label><input id="fTags" type="text" data-f="tags" style="width:100%" placeholder="Guides, Pull List"><div class="chips" id="tagChips"></div><p class="hint" style="margin:6px 0 0">The first tag is the chip above the title.</p></div>
         <div class="fld"><label class="f" for="fByline">Byline (optional)</label><input id="fByline" type="text" data-f="byline" style="width:100%" placeholder="Who signs this post"><p class="hint" id="bylineHint" style="margin:6px 0 0"></p></div>
+      </div>
+      <div class="card" id="lookCard">
+        <h2>Look and widgets</h2>
+        <div class="lookline"><label class="f">Look</label><p id="lookOut" style="margin:0"></p></div>
+        <label class="sw"><input type="checkbox" role="switch" id="nightSw" aria-describedby="nightSwHint" disabled><span><b>Named night card</b><span class="hint" id="nightSwHint"></span></span></label>
+        <div id="wgList"></div>
+        <p class="hint" style="margin:10px 0 0">A switched-on widget lands at the end of the post. Use its arrows in the post to move it. Only the two Comics widgets have fields here; the others paste in with their default copy. A Skin value you set on the post in Shopify overrides the tags.</p>
       </div>
       <div class="card">
         <h2>Search listing</h2>
@@ -894,6 +928,7 @@ function inl(n){
 function tidyInline(s){ return s.replace(/^(\s|<br>)+/,'').replace(/(\s|<br>)+$/,'').replace(/ {2,}/g,' ').replace(/ ?<br> ?/g,'<br>'); }
 function blockOf(el){
   const t = el.tagName;
+  if(t==='DIV' && el.hasAttribute('data-bc-widget')) return markerOf(el);   // a widget stand-in saves as its marker
   if(t==='H1'||t==='H2') { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h2'+idAttr(el)+'>'+c+'</h2>' : ''; }
   if(/^H[3-6]$/.test(t)) { const c=tidyInline(Array.from(el.childNodes).map(inl).join('')); return c? '<h3'+idAttr(el)+'>'+c+'</h3>' : ''; }
   if(t==='UL'||t==='OL'){
@@ -931,7 +966,7 @@ function serializeRoot(root){
   return out.join('\n');
 }
 function cleanHtml(html){
-  idSeen = new Set();
+  idSeen = new Set(); wgSeen = new Set();
   const d=new DOMParser().parseFromString('<body>'+html+'</body>','text/html');
   return serializeRoot(d.body);
 }
@@ -941,6 +976,247 @@ function textFromHtml(html){
 }
 function wordCount(text){ const t=text.replace(/\[[^\]]*\]/g,' ').trim(); return t? t.split(/\s+/).length : 0; }
 
+/* ---------- looks and widgets (Nov 18) ----------
+   LOOKS mirrors snippets/bc-skin-resolve.liquid in the theme: tags are compared by handle, the first look in
+   LOOK_ORDER that has a matching tag wins, and Comics is last on purpose.
+   A widget is a marker in the body (<div data-bc-widget="key"></div>). In the editor it shows as a stand-in card.
+   Copy body and Fields for Shopify swap every marker for the widget's full markup (the theme holds the scripts). */
+const LOOKS = {
+  commander:{label:'Commander', tags:['commander','edh']},
+  magic:{label:'Magic', tags:['magic','magic-the-gathering','mtg']},
+  swu:{label:'Star Wars: Unlimited', tags:['star-wars-unlimited','swu']},
+  riftbound:{label:'Riftbound', tags:['riftbound']},
+  fab:{label:'Flesh and Blood', tags:['flesh-and-blood','fab']},
+  roleplaying:{label:'Roleplaying', tags:['roleplaying','role-playing','rpg']},
+  boardgames:{label:'Boardgames', tags:['boardgames','board-games']},
+  miniatures:{label:'Miniatures', tags:['miniatures','warhammer']},
+  comics:{label:'Comics', tags:['comics','indie-comics','marvel','dc','image','batman','x-men']}
+};
+const LOOK_ORDER = ['commander','magic','swu','riftbound','fab','roleplaying','boardgames','miniatures','comics'];
+const LOOK_CHIPS = ['Commander','Magic','Star Wars: Unlimited','Riftbound','Flesh and Blood','Roleplaying','Boardgames','Miniatures','Comics'];
+const WIDGETS = [{"key":"swu-readout","look":"swu","name":"The Readout","note":"Stands in for Quick facts. Scans in once as it comes into view. Edit the five cells.","html":"<div class=\"swu-readout\"><div class=\"cell\"><span>Release<\/span><b>Fri, Nov 20, 2026<\/b><\/div><div class=\"cell\"><span>The set<\/span><b>194 cards<\/b><\/div><div class=\"cell\"><span>Legal until<\/span><b>March 2028<\/b><\/div><div class=\"cell\"><span>Starter Box<\/span><b>132 cards, two leaders<\/b><\/div><div class=\"cell\"><span>Friday night<\/span><b>6 to 10 PM, free<\/b><\/div><\/div>"},{"key":"swu-side","look":"swu","name":"Choose a side","note":"A Light, Dark or Balanced gauge that repaints the whole post. Edit the three panes.","html":"<div class=\"swu-side\"><div class=\"swu-gauge\"><button class=\"end\" type=\"button\" data-side-btn=\"light\" aria-pressed=\"false\">Light<\/button><div class=\"swu-track\"><input id=\"swu-range\" type=\"range\" min=\"0\" max=\"100\" value=\"50\" aria-label=\"Choose a side, light to dark\"><\/div><button class=\"end\" type=\"button\" data-side-btn=\"dark\" aria-pressed=\"false\">Dark<\/button><\/div><p class=\"swu-now\" aria-live=\"polite\">Side: <b id=\"swu-side-lbl\">BALANCED<\/b><\/p><div class=\"swu-read\" aria-live=\"polite\"><div class=\"pane bal\"><p class=\"pn\">Starter Box<\/p><p class=\"pt\">Two leaders, one box<\/p><p>Darth Vader and Leia Organa each come with a ready-made 30-card deck. Slide toward a side to see who you are picking up.<\/p><\/div><div class=\"pane lit\"><p class=\"pn\">Light side<\/p><p class=\"pt\">Leia Organa<\/p><p><span class=\"asp\">Cunning<\/span><span class=\"asp\">Heroism<\/span><\/p><p>She puts a card of your choice on top of your deck. That&rsquo;s a polite way of saying she helps you find the one you need.<\/p><\/div><div class=\"pane drk\"><p class=\"pn\">Dark side<\/p><p class=\"pt\">Darth Vader<\/p><p><span class=\"asp\">Vigilance<\/span><span class=\"asp\">Villainy<\/span><\/p><p>His leader ability runs on defeating your own units: spend a resource, defeat a friendly unit, and you draw a card and heal your base. That&rsquo;s a real cost, not a free draw.<\/p><\/div><\/div><\/div>"},{"key":"swu-deck","look":"swu","name":"Check your deck","note":"Checks a pile against the constructed rules. Edit the rules text only with care: the rules are in the script.","html":"<div class=\"swu-deck\" data-swud aria-label=\"Deck check\"><div class=\"sd-pick\" role=\"group\" aria-label=\"Leader and base\"><button type=\"button\" class=\"sd-t\" data-sd=\"leader\" aria-pressed=\"true\">Leader <b data-sdo=\"tl\">Picked<\/b><\/button><button type=\"button\" class=\"sd-t\" data-sd=\"base\" aria-pressed=\"true\">Base <b data-sdo=\"tb\">Picked<\/b><\/button><\/div><div class=\"sd-row\"><div class=\"sd-box\"><span class=\"sd-l\" id=\"sd-lc\">Cards in your draw deck<\/span><div class=\"sd-step\" role=\"group\" aria-labelledby=\"sd-lc\"><button type=\"button\" data-sd=\"c-\" aria-label=\"Fewer cards\">&minus;<\/button><output class=\"sd-v\" data-sdo=\"c\">46<\/output><button type=\"button\" data-sd=\"c+\" aria-label=\"More cards\">+<\/button><\/div><\/div><div class=\"sd-box\"><span class=\"sd-l\" id=\"sd-lx\">Most copies of any one card<\/span><div class=\"sd-step\" role=\"group\" aria-labelledby=\"sd-lx\"><button type=\"button\" data-sd=\"x-\" aria-label=\"Fewer copies\">&minus;<\/button><output class=\"sd-v\" data-sdo=\"x\">3<\/output><button type=\"button\" data-sd=\"x+\" aria-label=\"More copies\">+<\/button><\/div><\/div><\/div><div class=\"sd-check\"><div class=\"sd-ln\" data-sdo=\"k-leader\"><span>One leader<\/span><em><\/em><\/div><div class=\"sd-ln\" data-sdo=\"k-base\"><span>One base<\/span><em><\/em><\/div><div class=\"sd-ln\" data-sdo=\"k-cards\"><span>At least 50 cards in the draw deck<\/span><em><\/em><\/div><div class=\"sd-ln\" data-sdo=\"k-copies\"><span>No more than three copies of any card<\/span><em><\/em><\/div><\/div><p class=\"sd-verdict\" data-sdo=\"verdict\"><\/p><p class=\"sd-say\" aria-live=\"polite\" data-sdo=\"say\"><\/p><div class=\"sd-act\"><button type=\"button\" data-sd=\"reset\">Start over<\/button><\/div><\/div>"},{"key":"mg-deck","look":"magic","name":"Build a deck","note":"Sixty slots, lands against spells. The color picker is in the hero, not in the post.","html":"<div class=\"mg-deck\"><h3 class=\"dk\">Your deck so far<\/h3><p class=\"sub\">Tap a color to add a spell. Tap Land to add mana. A constructed deck is at least 60 cards.<\/p><div class=\"dk-btns\"><button type=\"button\" data-c=\"W\" style=\"--sw:#F3E2A0\"><i><\/i>White<b>0<\/b><\/button><button type=\"button\" data-c=\"U\" style=\"--sw:#5BA4DD\"><i><\/i>Blue<b>0<\/b><\/button><button type=\"button\" data-c=\"B\" style=\"--sw:#6A5580\"><i><\/i>Black<b>0<\/b><\/button><button type=\"button\" data-c=\"R\" style=\"--sw:#D2452A\"><i><\/i>Red<b>0<\/b><\/button><button type=\"button\" data-c=\"G\" style=\"--sw:#3F8F49\"><i><\/i>Green<b>0<\/b><\/button><button type=\"button\" class=\"land\" data-land><i><\/i>Land<b>0<\/b><\/button><button type=\"button\" class=\"ghost\" data-act=\"undo\">Undo<\/button><button type=\"button\" class=\"ghost\" data-act=\"clear\">Clear<\/button><\/div><div class=\"dk-slots\" aria-hidden=\"true\"><\/div><p class=\"dk-count\"><span><b class=\"dk-n\">0<\/b> of 60 cards<\/span><span><b class=\"dk-l\">0<\/b> lands &middot; <b class=\"dk-s\">0<\/b> spells<\/span><\/p><div class=\"dk-split\" aria-hidden=\"true\"><div class=\"bar\"><span class=\"ln\"><\/span><span class=\"sp\"><\/span><\/div><i class=\"rng\"><\/i><\/div><p class=\"dk-key\">The bracket marks 22 to 26 lands, the common range for 60 cards. It is a rule of thumb, not a rule.<\/p><p class=\"dk-land\" aria-live=\"polite\"><\/p><p class=\"dk-label\">Color mix, spells only<\/p><div class=\"dk-mix\" aria-hidden=\"true\"><\/div><p class=\"dk-label\">Mana curve, spells only<\/p><div class=\"dk-curve\" role=\"group\" aria-label=\"Mana curve. Tap a bar to read it.\"><button type=\"button\" data-mv=\"0\" aria-pressed=\"false\"><span class=\"n\"><\/span><em><\/em><b class=\"ax\">1<\/b><\/button><button type=\"button\" data-mv=\"1\" aria-pressed=\"false\"><span class=\"n\"><\/span><em><\/em><b class=\"ax\">2<\/b><\/button><button type=\"button\" data-mv=\"2\" aria-pressed=\"false\"><span class=\"n\"><\/span><em><\/em><b class=\"ax\">3<\/b><\/button><button type=\"button\" data-mv=\"3\" aria-pressed=\"false\"><span class=\"n\"><\/span><em><\/em><b class=\"ax\">4<\/b><\/button><button type=\"button\" data-mv=\"4\" aria-pressed=\"false\"><span class=\"n\"><\/span><em><\/em><b class=\"ax\">5<\/b><\/button><button type=\"button\" data-mv=\"5\" aria-pressed=\"false\"><span class=\"n\"><\/span><em><\/em><b class=\"ax\">6+<\/b><\/button><\/div><p class=\"dk-cv\" aria-live=\"polite\"><\/p><\/div>"},{"key":"cm-war","look":"commander","name":"The war table","note":"A 99 plus 1 dot matrix and a four seat table with the five zones.","html":"<div class=\"cm-war\"><h3 class=\"dk\">The war table<\/h3><p class=\"sub\">One hundred cards, one of them in charge. Tap a zone to see where it sits. You sit at the bottom, and the brass marker shows turn order, which goes clockwise.<\/p><div class=\"cm-grid\"><figure class=\"cm-dots\" style=\"margin:0\"><svg viewBox=\"-4 -4 208 208\" role=\"img\" aria-label=\"One hundred dots in a ten by ten grid. Ninety nine are dim and one is lit.\" xmlns=\"http://www.w3.org/2000/svg\"><circle class=\"d\" style=\"--i:0\" cx=\"10\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:1\" cx=\"30\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:2\" cx=\"50\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:3\" cx=\"70\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:4\" cx=\"90\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:5\" cx=\"110\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:6\" cx=\"130\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:7\" cx=\"150\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:8\" cx=\"170\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:9\" cx=\"190\" cy=\"10\" r=\"6.5\"/><circle class=\"d\" style=\"--i:10\" cx=\"10\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:11\" cx=\"30\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:12\" cx=\"50\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:13\" cx=\"70\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:14\" cx=\"90\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:15\" cx=\"110\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:16\" cx=\"130\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:17\" cx=\"150\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:18\" cx=\"170\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:19\" cx=\"190\" cy=\"30\" r=\"6.5\"/><circle class=\"d\" style=\"--i:20\" cx=\"10\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:21\" cx=\"30\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:22\" cx=\"50\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:23\" cx=\"70\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:24\" cx=\"90\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:25\" cx=\"110\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:26\" cx=\"130\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:27\" cx=\"150\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:28\" cx=\"170\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:29\" cx=\"190\" cy=\"50\" r=\"6.5\"/><circle class=\"d\" style=\"--i:30\" cx=\"10\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:31\" cx=\"30\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:32\" cx=\"50\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:33\" cx=\"70\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:34\" cx=\"90\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:35\" cx=\"110\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:36\" cx=\"130\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:37\" cx=\"150\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:38\" cx=\"170\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:39\" cx=\"190\" cy=\"70\" r=\"6.5\"/><circle class=\"d\" style=\"--i:40\" cx=\"10\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:41\" cx=\"30\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:42\" cx=\"50\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:43\" cx=\"70\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:44\" cx=\"90\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:45\" cx=\"110\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:46\" cx=\"130\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:47\" cx=\"150\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:48\" cx=\"170\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:49\" cx=\"190\" cy=\"90\" r=\"6.5\"/><circle class=\"d\" style=\"--i:50\" cx=\"10\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:51\" cx=\"30\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:52\" cx=\"50\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:53\" cx=\"70\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:54\" cx=\"90\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:55\" cx=\"110\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:56\" cx=\"130\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:57\" cx=\"150\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:58\" cx=\"170\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:59\" cx=\"190\" cy=\"110\" r=\"6.5\"/><circle class=\"d\" style=\"--i:60\" cx=\"10\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:61\" cx=\"30\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:62\" cx=\"50\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:63\" cx=\"70\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:64\" cx=\"90\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:65\" cx=\"110\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:66\" cx=\"130\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:67\" cx=\"150\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:68\" cx=\"170\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:69\" cx=\"190\" cy=\"130\" r=\"6.5\"/><circle class=\"d\" style=\"--i:70\" cx=\"10\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:71\" cx=\"30\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:72\" cx=\"50\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:73\" cx=\"70\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:74\" cx=\"90\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:75\" cx=\"110\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:76\" cx=\"130\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:77\" cx=\"150\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:78\" cx=\"170\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:79\" cx=\"190\" cy=\"150\" r=\"6.5\"/><circle class=\"d\" style=\"--i:80\" cx=\"10\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:81\" cx=\"30\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:82\" cx=\"50\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:83\" cx=\"70\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:84\" cx=\"90\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:85\" cx=\"110\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:86\" cx=\"130\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:87\" cx=\"150\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:88\" cx=\"170\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:89\" cx=\"190\" cy=\"170\" r=\"6.5\"/><circle class=\"d\" style=\"--i:90\" cx=\"10\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:91\" cx=\"30\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:92\" cx=\"50\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:93\" cx=\"70\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:94\" cx=\"90\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:95\" cx=\"110\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:96\" cx=\"130\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:97\" cx=\"150\" cy=\"190\" r=\"6.5\"/><circle class=\"d\" style=\"--i:98\" cx=\"170\" cy=\"190\" r=\"6.5\"/><circle class=\"d lit\" style=\"--i:99\" cx=\"190\" cy=\"190\" r=\"8\"/><circle class=\"ring\" cx=\"190\" cy=\"190\" r=\"13\"/><\/svg><figcaption><b>99<\/b> + <b>1<\/b> commander<\/figcaption><\/figure><div class=\"cm-table\"><svg viewBox=\"0 0 400 300\" role=\"img\" aria-label=\"A four player Commander table, with your five zones in front of you.\" xmlns=\"http://www.w3.org/2000/svg\"><rect class=\"felt\" x=\"6\" y=\"6\" width=\"388\" height=\"288\" rx=\"44\"/><rect class=\"seat\" x=\"160\" y=\"16\" width=\"80\" height=\"28\" rx=\"8\"/><text class=\"zt\" x=\"200\" y=\"34\" text-anchor=\"middle\">PLAYER 2<\/text><rect class=\"seat\" x=\"14\" y=\"86\" width=\"30\" height=\"84\" rx=\"8\"/><text class=\"zt\" x=\"29\" y=\"132\" text-anchor=\"middle\">P3<\/text><rect class=\"seat\" x=\"356\" y=\"86\" width=\"30\" height=\"84\" rx=\"8\"/><text class=\"zt\" x=\"371\" y=\"132\" text-anchor=\"middle\">P4<\/text><ellipse class=\"center\" cx=\"200\" cy=\"108\" rx=\"104\" ry=\"40\"/><text class=\"zt\" x=\"200\" y=\"111\" text-anchor=\"middle\">THE MIDDLE OF THE TABLE<\/text><rect class=\"z\" data-z=\"bf\" x=\"70\" y=\"164\" width=\"260\" height=\"42\" rx=\"8\"/><text class=\"zt\" x=\"200\" y=\"189\" text-anchor=\"middle\">BATTLEFIELD<\/text><polygon class=\"z\" data-z=\"cmd\" points=\"88,224 110.5,237 110.5,263 88,276 65.5,263 65.5,237\"/><text class=\"zt\" x=\"88\" y=\"254\" text-anchor=\"middle\">CMD<\/text><rect class=\"seat\" x=\"158\" y=\"222\" width=\"38\" height=\"50\" rx=\"4\"/><rect class=\"seat\" x=\"155\" y=\"225\" width=\"38\" height=\"50\" rx=\"4\"/><rect class=\"z\" data-z=\"lib\" x=\"152\" y=\"228\" width=\"38\" height=\"50\" rx=\"4\"/><text class=\"zt\" x=\"171\" y=\"257\" text-anchor=\"middle\">LIB<\/text><rect class=\"z\" data-z=\"gy\" x=\"222\" y=\"228\" width=\"40\" height=\"50\" rx=\"4\" transform=\"rotate(-8 242 253)\"/><text class=\"zt\" x=\"242\" y=\"257\" text-anchor=\"middle\">GY<\/text><polygon class=\"z\" data-z=\"ex\" points=\"312,224 338,250 312,276 286,250\"/><text class=\"zt\" x=\"312\" y=\"253\" text-anchor=\"middle\">EX<\/text><g class=\"tm first\" style=\"--k:0\" aria-hidden=\"true\"><circle cx=\"200\" cy=\"215\" r=\"7\"/><circle class=\"c\" cx=\"200\" cy=\"215\" r=\"2.6\"/><\/g><g class=\"tm\" style=\"--k:1\" aria-hidden=\"true\"><circle cx=\"58\" cy=\"128\" r=\"7\"/><circle class=\"c\" cx=\"58\" cy=\"128\" r=\"2.6\"/><\/g><g class=\"tm\" style=\"--k:2\" aria-hidden=\"true\"><circle cx=\"200\" cy=\"56\" r=\"7\"/><circle class=\"c\" cx=\"200\" cy=\"56\" r=\"2.6\"/><\/g><g class=\"tm\" style=\"--k:3\" aria-hidden=\"true\"><circle cx=\"342\" cy=\"128\" r=\"7\"/><circle class=\"c\" cx=\"342\" cy=\"128\" r=\"2.6\"/><\/g><\/svg><\/div><\/div><div class=\"cm-zones\" role=\"group\" aria-label=\"Zones\"><button type=\"button\" data-z=\"cmd\" aria-pressed=\"true\">Command<\/button><button type=\"button\" data-z=\"lib\" aria-pressed=\"false\">Library<\/button><button type=\"button\" data-z=\"gy\" aria-pressed=\"false\">Graveyard<\/button><button type=\"button\" data-z=\"ex\" aria-pressed=\"false\">Exile<\/button><button type=\"button\" data-z=\"bf\" aria-pressed=\"false\">Battlefield<\/button><\/div><p class=\"cm-zread\" aria-live=\"polite\"><\/p><\/div>"},{"key":"cm-dmg","look":"commander","name":"Count to 21","note":"A commander damage tracker.","html":"<div class=\"cm-dmg\"><h3 class=\"dk\">Count to 21<\/h3><p class=\"sub\">You start at 40 life, and two commanders are coming for you. Tap what happens and watch both numbers.<\/p><div class=\"cm-life\"><div class=\"lf\"><span class=\"lbl\">Your life<\/span><b class=\"n\" aria-hidden=\"true\">40<\/b><div class=\"lbar\"><span class=\"fill\"><\/span><\/div><\/div><div class=\"tracks\"><div class=\"tr\" data-t=\"a\"><span class=\"lbl\">Commander A, damage to you<\/span><b class=\"n\" aria-hidden=\"true\">0<\/b><div class=\"tbar\"><span class=\"fill\"><\/span><i style=\"left:33.33%\"><\/i><i style=\"left:66.66%\"><\/i><\/div><\/div><div class=\"tr\" data-t=\"b\"><span class=\"lbl\">Commander B, damage to you<\/span><b class=\"n\" aria-hidden=\"true\">0<\/b><div class=\"tbar\"><span class=\"fill\"><\/span><i style=\"left:33.33%\"><\/i><i style=\"left:66.66%\"><\/i><\/div><\/div><p class=\"mark\">Out at 21 from one<\/p><\/div><\/div><div class=\"cm-acts\" role=\"group\" aria-label=\"What happens to you\"><button type=\"button\" data-do=\"a\">Commander A hits you for 7<\/button><button type=\"button\" data-do=\"b\">Commander B hits you for 7<\/button><button type=\"button\" data-do=\"o\">Something else deals 7<\/button><button type=\"button\" data-do=\"g\">You gain 7 life<\/button><\/div><div class=\"cm-acts2\"><button type=\"button\" data-do=\"undo\">Undo<\/button><button type=\"button\" data-do=\"reset\">Start over<\/button><\/div><p class=\"cm-dread\" aria-live=\"polite\"><\/p><\/div>"},{"key":"rb-race","look":"riftbound","name":"Race to 8","note":"A score track and two battlefields.","html":"<div class=\"rb-race\" data-rbr aria-label=\"Race to 8 score track\"><div class=\"rr-top\"><h3>Race to 8<\/h3><span class=\"rr-pts\" data-rro=\"pts\">0 of 8<\/span><\/div><p class=\"rr-sub\">Tap a battlefield to conquer it. Then start your next turn to see what holding pays.<\/p><ol class=\"rr-track\" aria-hidden=\"true\"><li>1<\/li><li>2<\/li><li>3<\/li><li>4<\/li><li>5<\/li><li>6<\/li><li>7<\/li><li>8<\/li><\/ol><div class=\"rr-bfs\"><button type=\"button\" class=\"rr-bf\" data-bf=\"a\"><b>Battlefield A<\/b><span>Not yours<\/span><\/button><button type=\"button\" class=\"rr-bf\" data-bf=\"b\"><b>Battlefield B<\/b><span>Not yours<\/span><\/button><\/div><p class=\"rr-say\" aria-live=\"polite\" data-rro=\"say\"><\/p><div class=\"rr-act\"><button type=\"button\" data-rr=\"turn\">Start your next turn<\/button><button type=\"button\" class=\"ghost\" data-rr=\"lose\">They take one back<\/button><button type=\"button\" class=\"ghost\" data-rr=\"reset\">Start over<\/button><\/div><\/div>"},{"key":"rb-call","look":"riftbound","name":"The callout","note":"A short note box in the Riftbound style.","html":"<div class=\"rb-call\"><h3>Ready to try it?<\/h3><p>Bring a deck, or come learn on a ready-made one. We will teach you at the table.<\/p><\/div>"},{"key":"fb-math","look":"fab","name":"Do the math","note":"Attack, block, damage and a life bar.","html":"<div class=\"fb-math\" data-fbm aria-label=\"Damage calculator\"><div class=\"fm-row\"><div class=\"fm-box\"><span class=\"fm-l\" id=\"fm-la\">Attack<\/span><div class=\"fm-step\" role=\"group\" aria-labelledby=\"fm-la\"><button type=\"button\" data-fm=\"a-\" aria-label=\"Lower attack\">&minus;<\/button><output class=\"fm-v\" data-fmo=\"a\">6<\/output><button type=\"button\" data-fm=\"a+\" aria-label=\"Raise attack\">+<\/button><\/div><\/div><span class=\"fm-op\" aria-hidden=\"true\"><\/span><div class=\"fm-box\"><span class=\"fm-l\" id=\"fm-lb\">Block<\/span><div class=\"fm-step\" role=\"group\" aria-labelledby=\"fm-lb\"><button type=\"button\" data-fm=\"b-\" aria-label=\"Lower block\">&minus;<\/button><output class=\"fm-v\" data-fmo=\"b\">2<\/output><button type=\"button\" data-fm=\"b+\" aria-label=\"Raise block\">+<\/button><\/div><\/div><span class=\"fm-op eq\" aria-hidden=\"true\"><\/span><div class=\"fm-box dmg\"><span class=\"fm-l\">Damage<\/span><output class=\"fm-v\" data-fmo=\"d\">4<\/output><\/div><\/div><div class=\"fm-life\"><div class=\"fm-lbl\"><span>Their life, Blitz<\/span><output data-fmo=\"life\">20 of 20<\/output><\/div><div class=\"fm-bar\" role=\"img\" aria-label=\"Life bar\"><span class=\"keep\" data-fmo=\"keep\" style=\"width:100%\"><\/span><span class=\"hit\" data-fmo=\"hit\" style=\"width:0\"><\/span><\/div><\/div><p class=\"fm-say\" aria-live=\"polite\" data-fmo=\"say\"><\/p><div class=\"fm-act\"><button type=\"button\" data-fm=\"hit\">Hit them<\/button><button type=\"button\" class=\"ghost\" data-fm=\"reset\">Start over<\/button><\/div><\/div>"},{"key":"fb-ledger","look":"fab","name":"The ledger","note":"A short rules note in the Flesh and Blood style.","html":"<div class=\"fb-ledger\"><div class=\"lh\"><span>The deal<\/span><span>Blitz<\/span><span>Classic Constructed<\/span><\/div><div class=\"lr\"><div>Heroes<\/div><div>Young<\/div><div>Adult<\/div><\/div><div class=\"lr\"><div>Deck<\/div><div>Exactly 40 cards<\/div><div>At least 60 cards<\/div><\/div><div class=\"lr\"><div>Life<\/div><div>Usually 20<\/div><div>40 is the baseline<\/div><\/div><div class=\"lr\"><div>Feel<\/div><div>Short games, around half an hour a round<\/div><div>The full size game, with more room to build<\/div><\/div><div class=\"lt\">Want to get in quickly? Start with Blitz.<\/div><\/div>"},{"key":"rp-check","look":"roleplaying","name":"Roll a check","note":"A d20 with a bonus and a target. The candle toggle is in the hero.","html":"<div class=\"rp-check\" data-rpc><p class=\"rc-h\">Roll a check<\/p><p class=\"rc-sub\">Roll the die, add your bonus and meet the target.<\/p><div class=\"rc-grid\"><div class=\"rc-die\" data-rco=\"die\"><svg class=\"rp-d20\" viewBox=\"0 0 120 120\" aria-hidden=\"true\" focusable=\"false\" xmlns=\"http://www.w3.org/2000/svg\"><defs><linearGradient id=\"dg-u21\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7A1C3E\"/><stop offset=\"1\" stop-color=\"#3B0A1E\"/><\/linearGradient><\/defs><polygon points=\"60,5 109,33 109,87 60,115 11,87 11,33\" fill=\"url(#dg-u21)\" stroke=\"#E2BE63\" stroke-width=\"3\" stroke-linejoin=\"round\"/><g fill=\"none\" stroke=\"#E2BE63\" stroke-width=\"1.8\" stroke-linejoin=\"round\" opacity=\".85\"><polygon points=\"60,27 98,90 22,90\"/><path d=\"M60 27L60 5\"/><path d=\"M60 27L109 33\"/><path d=\"M60 27L11 33\"/><path d=\"M98 90L109 33\"/><path d=\"M98 90L109 87\"/><path d=\"M98 90L60 115\"/><path d=\"M22 90L60 115\"/><path d=\"M22 90L11 87\"/><path d=\"M22 90L11 33\"/><\/g><text class=\"num\" x=\"60\" y=\"72\" text-anchor=\"middle\">20<\/text><\/svg><\/div><div class=\"rc-ctl\"><div class=\"rc-row\"><span class=\"rc-l\" id=\"rc-lb\">Your bonus<\/span><div class=\"rc-step\" role=\"group\" aria-labelledby=\"rc-lb\"><button type=\"button\" data-rc=\"b-\" aria-label=\"Lower bonus\">&minus;<\/button><output data-rco=\"b\">3<\/output><button type=\"button\" data-rc=\"b+\" aria-label=\"Raise bonus\">+<\/button><\/div><\/div><div class=\"rc-row\"><span class=\"rc-l\" id=\"rc-ld\">Target<\/span><div class=\"rc-dcs\" role=\"group\" aria-labelledby=\"rc-ld\"><button type=\"button\" data-rc=\"dc\" data-v=\"10\" aria-pressed=\"false\">Easy 10<\/button><button type=\"button\" data-rc=\"dc\" data-v=\"15\" aria-pressed=\"true\">Medium 15<\/button><button type=\"button\" data-rc=\"dc\" data-v=\"20\" aria-pressed=\"false\">Hard 20<\/button><\/div><\/div><button type=\"button\" class=\"rc-roll\" data-rc=\"roll\">Roll the die<\/button><\/div><\/div><p class=\"rc-say\" aria-live=\"polite\" data-rco=\"say\"><\/p><div class=\"rc-log\" data-rco=\"log\" role=\"list\" aria-label=\"Recent rolls\"><\/div><p class=\"rc-note\">Meeting the target counts as a pass. Rules vary by game, so your game master has the last word.<\/p><\/div>"},{"key":"bg-roll","look":"boardgames","name":"Roll and move","note":"A die, a seven by seven board and a pawn.","html":"<div class=\"bg-roll\" data-bgr><p class=\"br-h\">Roll and move<\/p><p class=\"br-sub\">Get your pawn from Start to Goal. Straight lines only, and walls stop you.<\/p><div class=\"br-wrap\"><div class=\"br-board\" role=\"img\" aria-label=\"A seven by seven board. Your pawn starts at the top left and the goal is at the bottom right. Dark squares are walls.\"><div class=\"t\" data-r=\"0\" data-c=\"0\" data-k=\"0\"><span>Start<\/span><\/div><div class=\"t\" data-r=\"0\" data-c=\"1\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"0\" data-c=\"2\" data-k=\"0\"><\/div><div class=\"t wall\" data-r=\"0\" data-c=\"3\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"0\" data-c=\"4\" data-k=\"0\"><\/div><div class=\"t\" data-r=\"0\" data-c=\"5\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"0\" data-c=\"6\" data-k=\"0\"><\/div><div class=\"t wall\" data-r=\"1\" data-c=\"0\" data-k=\"1\"><\/div><div class=\"t wall\" data-r=\"1\" data-c=\"1\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"1\" data-c=\"2\" data-k=\"1\"><\/div><div class=\"t wall\" data-r=\"1\" data-c=\"3\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"1\" data-c=\"4\" data-k=\"1\"><\/div><div class=\"t wall\" data-r=\"1\" data-c=\"5\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"1\" data-c=\"6\" data-k=\"1\"><\/div><div class=\"t\" data-r=\"2\" data-c=\"0\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"2\" data-c=\"1\" data-k=\"0\"><\/div><div class=\"t\" data-r=\"2\" data-c=\"2\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"2\" data-c=\"3\" data-k=\"0\"><\/div><div class=\"t\" data-r=\"2\" data-c=\"4\" data-k=\"2\"><\/div><div class=\"t wall\" data-r=\"2\" data-c=\"5\" data-k=\"0\"><\/div><div class=\"t\" data-r=\"2\" data-c=\"6\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"3\" data-c=\"0\" data-k=\"3\"><\/div><div class=\"t wall\" data-r=\"3\" data-c=\"1\" data-k=\"1\"><\/div><div class=\"t wall\" data-r=\"3\" data-c=\"2\" data-k=\"3\"><\/div><div class=\"t wall\" data-r=\"3\" data-c=\"3\" data-k=\"1\"><\/div><div class=\"t\" data-r=\"3\" data-c=\"4\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"3\" data-c=\"5\" data-k=\"1\"><\/div><div class=\"t\" data-r=\"3\" data-c=\"6\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"4\" data-c=\"0\" data-k=\"0\"><\/div><div class=\"t\" data-r=\"4\" data-c=\"1\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"4\" data-c=\"2\" data-k=\"0\"><\/div><div class=\"t wall\" data-r=\"4\" data-c=\"3\" data-k=\"2\"><\/div><div class=\"t wall\" data-r=\"4\" data-c=\"4\" data-k=\"0\"><\/div><div class=\"t wall\" data-r=\"4\" data-c=\"5\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"4\" data-c=\"6\" data-k=\"0\"><\/div><div class=\"t wall\" data-r=\"5\" data-c=\"0\" data-k=\"1\"><\/div><div class=\"t wall\" data-r=\"5\" data-c=\"1\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"5\" data-c=\"2\" data-k=\"1\"><\/div><div class=\"t\" data-r=\"5\" data-c=\"3\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"5\" data-c=\"4\" data-k=\"1\"><\/div><div class=\"t\" data-r=\"5\" data-c=\"5\" data-k=\"3\"><\/div><div class=\"t\" data-r=\"5\" data-c=\"6\" data-k=\"1\"><\/div><div class=\"t\" data-r=\"6\" data-c=\"0\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"6\" data-c=\"1\" data-k=\"0\"><\/div><div class=\"t\" data-r=\"6\" data-c=\"2\" data-k=\"2\"><\/div><div class=\"t wall\" data-r=\"6\" data-c=\"3\" data-k=\"0\"><\/div><div class=\"t wall\" data-r=\"6\" data-c=\"4\" data-k=\"2\"><\/div><div class=\"t\" data-r=\"6\" data-c=\"5\" data-k=\"0\"><\/div><div class=\"t goal\" data-r=\"6\" data-c=\"6\" data-k=\"2\"><span>Goal<\/span><\/div><div class=\"br-pawn\" data-bgo=\"pawn\" style=\"--r:0;--c:0\"><svg viewBox=\"-40 -48 80 96\" aria-hidden=\"true\" focusable=\"false\" xmlns=\"http://www.w3.org/2000/svg\"><g class=\"pwx\"><rect x=\"-27\" y=\"26\" width=\"54\" height=\"13\" fill=\"#E03131\" stroke=\"#101010\" stroke-width=\"5\"/><path d=\"M-17 26 L-10 -9 H10 L17 26Z\" fill=\"#E03131\" stroke=\"#101010\" stroke-width=\"5\" stroke-linejoin=\"miter\"/><circle cy=\"-24\" r=\"16\" fill=\"#E03131\" stroke=\"#101010\" stroke-width=\"5\"/><rect x=\"-6\" y=\"-31\" width=\"7\" height=\"7\" fill=\"#fff\" opacity=\".7\"/><\/g><\/svg><\/div><\/div><div class=\"br-side\"><div class=\"br-die\" data-bgo=\"die\" aria-hidden=\"true\"><i><\/i><i><\/i><i><\/i><i><\/i><i><\/i><i><\/i><i><\/i><i><\/i><i><\/i><\/div><button type=\"button\" class=\"br-rollbtn\" data-bg=\"roll\">Roll the die<\/button><p class=\"br-left\">Steps left<b data-bgo=\"left\">0<\/b><\/p><div class=\"br-pad\" role=\"group\" aria-label=\"Move your pawn\"><button type=\"button\" class=\"br-mv up\" data-bg=\"mv\" data-d=\"up\" aria-label=\"Move up\">&uarr;<\/button><button type=\"button\" class=\"br-mv lf\" data-bg=\"mv\" data-d=\"left\" aria-label=\"Move left\">&larr;<\/button><button type=\"button\" class=\"br-mv rt\" data-bg=\"mv\" data-d=\"right\" aria-label=\"Move right\">&rarr;<\/button><button type=\"button\" class=\"br-mv dn\" data-bg=\"mv\" data-d=\"down\" aria-label=\"Move down\">&darr;<\/button><\/div><button type=\"button\" class=\"br-ghost\" data-bg=\"reset\">Start over<\/button><p class=\"br-say\" aria-live=\"polite\" data-bgo=\"say\"><\/p><\/div><\/div><\/div>"},{"key":"mn-measure","look":"miniatures","name":"Measure it","note":"Pick a Move, slide the target, see if it is in reach.","html":"<div class=\"mn-measure\" data-mnm><p class=\"mm-h\">Measure it<\/p><p class=\"mm-sub\">Pick a Move. Slide the target. Is it in reach?<\/p><div class=\"mm-mat\"><svg class=\"mn-mat-svg\" viewBox=\"0 0 240 160\" role=\"img\" aria-label=\"A top down tabletop, 24 inches by 16. A model stands on the left with a circle around it showing how far it can move. A target sits somewhere on the table.\" xmlns=\"http://www.w3.org/2000/svg\"><rect class=\"felt\" width=\"240\" height=\"160\"/><g class=\"grid\"><path class=\"sm\" d=\"M10 0V160\"/><path class=\"sm\" d=\"M20 0V160\"/><path class=\"sm\" d=\"M30 0V160\"/><path class=\"sm\" d=\"M40 0V160\"/><path class=\"sm\" d=\"M50 0V160\"/><path class=\"big\" d=\"M60 0V160\"/><path class=\"sm\" d=\"M70 0V160\"/><path class=\"sm\" d=\"M80 0V160\"/><path class=\"sm\" d=\"M90 0V160\"/><path class=\"sm\" d=\"M100 0V160\"/><path class=\"sm\" d=\"M110 0V160\"/><path class=\"big\" d=\"M120 0V160\"/><path class=\"sm\" d=\"M130 0V160\"/><path class=\"sm\" d=\"M140 0V160\"/><path class=\"sm\" d=\"M150 0V160\"/><path class=\"sm\" d=\"M160 0V160\"/><path class=\"sm\" d=\"M170 0V160\"/><path class=\"big\" d=\"M180 0V160\"/><path class=\"sm\" d=\"M190 0V160\"/><path class=\"sm\" d=\"M200 0V160\"/><path class=\"sm\" d=\"M210 0V160\"/><path class=\"sm\" d=\"M220 0V160\"/><path class=\"sm\" d=\"M230 0V160\"/><path class=\"sm\" d=\"M0 10H240\"/><path class=\"sm\" d=\"M0 20H240\"/><path class=\"sm\" d=\"M0 30H240\"/><path class=\"sm\" d=\"M0 40H240\"/><path class=\"sm\" d=\"M0 50H240\"/><path class=\"big\" d=\"M0 60H240\"/><path class=\"sm\" d=\"M0 70H240\"/><path class=\"sm\" d=\"M0 80H240\"/><path class=\"sm\" d=\"M0 90H240\"/><path class=\"sm\" d=\"M0 100H240\"/><path class=\"sm\" d=\"M0 110H240\"/><path class=\"big\" d=\"M0 120H240\"/><path class=\"sm\" d=\"M0 130H240\"/><path class=\"sm\" d=\"M0 140H240\"/><path class=\"sm\" d=\"M0 150H240\"/><\/g><circle class=\"range\" cx=\"40\" cy=\"120\" r=\"60\"/><path class=\"tape\" d=\"M40 120L40 120\"/><g class=\"tgt\"><polygon class=\"tg-hex\" points=\"-9,-4.5 0,-9.5 9,-4.5 9,4.5 0,9.5 -9,4.5\"/><circle class=\"tg-dot\" r=\"3\"/><\/g><g class=\"mdl\"><circle class=\"base\" cx=\"40\" cy=\"120\" r=\"7.5\"/><circle class=\"base2\" cx=\"40\" cy=\"120\" r=\"4.2\"/><\/g><text class=\"tape-t\" x=\"0\" y=\"0\" text-anchor=\"middle\"><\/text><\/svg><\/div><div class=\"mm-ctl\"><span class=\"mm-l\" id=\"mm-lm\">Move<\/span><div class=\"mm-moves\" role=\"group\" aria-labelledby=\"mm-lm\"><button type=\"button\" data-mm=\"m\" data-v=\"4\" aria-pressed=\"false\" aria-label=\"Move 4 inches\">4 in<\/button><button type=\"button\" data-mm=\"m\" data-v=\"6\" aria-pressed=\"true\" aria-label=\"Move 6 inches\">6 in<\/button><button type=\"button\" data-mm=\"m\" data-v=\"8\" aria-pressed=\"false\" aria-label=\"Move 8 inches\">8 in<\/button><button type=\"button\" data-mm=\"m\" data-v=\"10\" aria-pressed=\"false\" aria-label=\"Move 10 inches\">10 in<\/button><\/div><span class=\"mm-l\" id=\"mm-ld\">Target<\/span><div class=\"mm-dist\"><input type=\"range\" min=\"1\" max=\"16\" step=\"1\" value=\"7\" data-mm=\"dist\" aria-labelledby=\"mm-ld\"><output data-mmo=\"d\" aria-hidden=\"true\">7 in<\/output><\/div><\/div><p class=\"mm-say\" aria-live=\"polite\" data-mmo=\"say\"><\/p><\/div>"},{"key":"cx-caps","look":"comics","name":"Caption boxes","note":"A strip of three narration boxes with label tabs. Edit the labels and the lines.","html":"<div class=\"cx-caps\"><p class=\"cx-cap\"><b>Start with<\/b>A first collected volume, or a brand new first issue.<\/p><p class=\"cx-cap\"><b>Skip<\/b>The urge to read all of it before you begin.<\/p><p class=\"cx-cap\"><b>Ask us<\/b>At the counter. We like being asked what is good.<\/p><\/div>"},{"key":"cx-order","look":"comics","name":"Read in this order","note":"A checklist of steps. Tap Read it to mark a step done and the next one lights up. Edit the names and lines, and add or remove list items.","html":"<div class=\"cx-order\" data-cxo><p class=\"co-h\">Read in this order<\/p><p class=\"co-sub\">Tap Read it when you finish a step. Your next read lights up.<\/p><ol class=\"co-list\"><li><div class=\"co-t\"><b>Start here<\/b>A first collected volume. It tells you who everyone is.<\/div><\/li><li><div class=\"co-t\"><b>Keep going<\/b>The next volume, or the next few issues in a row.<\/div><\/li><li><div class=\"co-t\"><b>Branch out<\/b>A side story, once you know who is in it.<\/div><\/li><li><div class=\"co-t\"><b>Catch up<\/b>The most recent collected volume.<\/div><\/li><li><div class=\"co-t\"><b>Go monthly<\/b>Put the series on your pull list and read it as it lands.<\/div><\/li><\/ol><p class=\"co-say\" aria-live=\"polite\" data-cxo-say><\/p><\/div>"}];
+const WBYKEY = {}; WIDGETS.forEach(w=>{ WBYKEY[w.key]=w; });
+const WMARK_RE = /<div data-bc-widget="([a-z0-9-]+)"(?: data-bc-f="([^"]*)")?><\/div>/g;
+
+function tagHandle(t){ return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+function lookOf(tags){   // which look do these tags pick? {key, tag, others:[{key,tag}]}
+  const tl=String(tags||'').split(',').map(x=>x.trim()).filter(Boolean).map(t=>({t,h:tagHandle(t)}));
+  const hit=[];
+  LOOK_ORDER.forEach(k=>{ const m=tl.find(x=>LOOKS[k].tags.indexOf(x.h)>=0); if(m) hit.push({key:k,tag:m.t}); });
+  return hit.length? {key:hit[0].key, tag:hit[0].tag, others:hit.slice(1)} : {key:'default', tag:'', others:[]};
+}
+const lookLabel = k => k==='default'? 'standard' : LOOKS[k].label;
+
+/* widgets that carry fields: the two Comics ones (Nov 18). The rest paste in with their default copy. */
+const clip = (v,n) => String(v==null?'':v).replace(/[\r\n]+/g,' ').slice(0,n);
+const copyOf = o => JSON.parse(JSON.stringify(o));
+const WFIELDS = {
+  'cx-caps': {
+    def:{caps:[['Start with','A first collected volume, or a brand new first issue.'],['Skip','The urge to read all of it before you begin.'],['Ask us','At the counter. We like being asked what is good.']]},
+    norm(o){
+      if(!o||!Array.isArray(o.caps)||o.caps.length!==3||!o.caps.every(c=>Array.isArray(c)&&c.length===2)) return copyOf(this.def);
+      return {caps:o.caps.map(c=>[clip(c[0],40),clip(c[1],220)])};
+    },
+    build(f){ return '<div class="cx-caps">'+f.caps.map(c=>'<p class="cx-cap"><b>'+escT(c[0])+'</b>'+escT(c[1])+'</p>').join('')+'</div>'; },
+    text(f){ return f.caps.map(c=>c[0]+' '+c[1]).join(' \n '); },
+    preview(f){ return f.caps.map(c=>'<div><b>'+esc(c[0])+'</b> '+esc(c[1])+'</div>').join(''); }
+  },
+  'cx-order': {
+    def:{h:'Read in this order', sub:'Tap Read it when you finish a step. Your next read lights up.', steps:[['Start here','A first collected volume. It tells you who everyone is.'],['Keep going','The next volume, or the next few issues in a row.'],['Branch out','A side story, once you know who is in it.'],['Catch up','The most recent collected volume.'],['Go monthly','Put the series on your pull list and read it as it lands.']]},
+    norm(o){
+      if(!o||typeof o.h!=='string'||typeof o.sub!=='string'||!Array.isArray(o.steps)||o.steps.length<2||o.steps.length>8||!o.steps.every(c=>Array.isArray(c)&&c.length===2)) return copyOf(this.def);
+      return {h:clip(o.h,60), sub:clip(o.sub,200), steps:o.steps.map(c=>[clip(c[0],40),clip(c[1],220)])};
+    },
+    build(f){ return '<div class="cx-order" data-cxo><p class="co-h">'+escT(f.h)+'</p><p class="co-sub">'+escT(f.sub)+'</p><ol class="co-list">'+f.steps.map(c=>'<li><div class="co-t"><b>'+escT(c[0])+'</b>'+escT(c[1])+'</div></li>').join('')+'</ol><p class="co-say" aria-live="polite" data-cxo-say></p></div>'; },
+    text(f){ return [f.h,f.sub].concat(f.steps.map(c=>c[0]+' '+c[1])).join(' \n '); },
+    preview(f){ return '<div><b>'+esc(f.h)+'</b></div><div>'+esc(f.sub)+'</div>'+f.steps.map((c,i)=>'<div>'+(i+1)+'. <b>'+esc(c[0])+'</b> '+esc(c[1])+'</div>').join(''); }
+  }
+};
+
+function parseJ(s){ try{ return JSON.parse(s); }catch(e){ return null; } }
+const unA = s => String(s).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+const nodeState = node => WFIELDS[node.getAttribute('data-bc-widget')].norm(parseJ(node.getAttribute('data-bc-f')||''));   // from the stand-in in the editor (raw JSON)
+function wgState(k,raw){ const F=WFIELDS[k]; return F? F.norm(raw? parseJ(unA(raw)) : null) : null; }                    // from a marker in S.body (escaped JSON)
+function wgKeys(body){ const out=[]; String(body||'').replace(WMARK_RE,(m,k)=>{ if(WBYKEY[k]) out.push(k); return m; }); return out; }
+function stripWidgets(body){ return String(body||'').replace(WMARK_RE,''); }
+function widgetTail(body){ const m=String(body||'').match(WMARK_RE)||[]; return m.length? '\n'+m.join('\n') : ''; }
+function exportBody(body){   // the body as Shopify gets it: every marker swapped for the full widget markup
+  return String(body||'').replace(WMARK_RE,(m,k,f)=>{ const w=WBYKEY[k]; if(!w) return ''; const F=WFIELDS[k]; return F? F.build(wgState(k,f)) : w.html; });
+}
+function widgetText(body){   // what the fields say, for the house-rule checks
+  const out=[]; String(body||'').replace(WMARK_RE,(m,k,f)=>{ const F=WFIELDS[k]; if(F&&WBYKEY[k]) out.push(F.text(wgState(k,f))); return m; });
+  return out.join(' \n ');
+}
+let wgSeen = new Set();   // reset by cleanHtml: one of each widget per post, so a stand-in the browser's undo brings back twice saves once
+function markerOf(node){   // the clean marker for a stand-in in the editor
+  const k=node.getAttribute('data-bc-widget'); if(!WBYKEY[k] || wgSeen.has(k)) return '';
+  wgSeen.add(k);
+  const F=WFIELDS[k];
+  return '<div data-bc-widget="'+k+'"'+(F? ' data-bc-f="'+escA(JSON.stringify(nodeState(node)))+'"' : '')+'></div>';
+}
+
+/* ---------- the stand-in card in the post ---------- */
+const wgNode = k => ed.querySelector('[data-bc-widget="'+k+'"]');
+const isWg = n => !!(n && n.nodeType===1 && n.hasAttribute('data-bc-widget'));
+function paintWidget(el){
+  const k=el.getAttribute('data-bc-widget'), w=WBYKEY[k], F=WFIELDS[k], b=el.querySelector('.bc-wg-b'); if(!b) return;
+  b.innerHTML=(F? F.preview(nodeState(el)) : '<div>'+esc(w.note)+'</div>')+'<div class="bc-wg-f">The real widget shows in Shopify.</div>';
+}
+function upgradeWidget(el){
+  const k=el.getAttribute('data-bc-widget'), w=WBYKEY[k];
+  if(!w){ el.remove(); return; }
+  const F=WFIELDS[k];
+  if(F) el.setAttribute('data-bc-f', JSON.stringify(F.norm(parseJ(el.getAttribute('data-bc-f')||''))));
+  el.className='bc-wg'; el.setAttribute('contenteditable','false');
+  el.innerHTML='<div class="bc-wg-h"><span>Widget: '+esc(w.name)+'</span><span class="bc-wg-l">'+esc(lookLabel(w.look))+' look</span><span class="g"></span>'+
+    '<button type="button" data-wg="up" aria-label="Move '+esc(w.name)+' up">↑</button><button type="button" data-wg="down" aria-label="Move '+esc(w.name)+' down">↓</button></div><div class="bc-wg-b"></div>';
+  paintWidget(el);
+}
+function ensureTail(){   // a widget at the very end leaves no place to type after it: keep an empty line (the cleaner drops it)
+  const seen=new Set(); Array.from(ed.querySelectorAll('[data-bc-widget]')).forEach(n=>{ const k=n.getAttribute('data-bc-widget'); if(seen.has(k)) n.remove(); else seen.add(k); });   // a second copy of one widget (from the browser's undo) goes
+  const last=ed.lastElementChild;
+  if(isWg(last)){ const p=document.createElement('p'); p.innerHTML='<br>'; ed.appendChild(p); }
+}
+let railSig='';
+function hydrateWidgets(){ railSig=''; Array.from(ed.querySelectorAll('[data-bc-widget]')).forEach(upgradeWidget); ensureTail(); }
+function wgChanged(){ syncBody(); scheduleSave(); scheduleRefresh(); refresh(); }
+function addWidget(k){
+  const have=wgNode(k); if(have){ have.scrollIntoView({block:'center',behavior:'smooth'}); return; }
+  const el=document.createElement('div'); el.setAttribute('data-bc-widget',k);
+  upgradeWidget(el);
+  const last=ed.lastElementChild;
+  if(last && last.tagName==='P' && !last.textContent.trim() && !last.querySelector('img')) ed.insertBefore(el,last); else ed.appendChild(el);
+  ensureTail(); wgChanged();
+  el.scrollIntoView({block:'center',behavior:'smooth'});
+}
+function removeWidget(k){
+  const n=wgNode(k); if(n) n.remove();
+  if(!ed.firstChild) ed.innerHTML='<p><br></p>';
+  wgChanged();
+}
+function moveWidget(box,dir){
+  const sib = dir==='up'? box.previousElementSibling : box.nextElementSibling;
+  const tailOnly = dir==='down' && sib && !sib.nextElementSibling && !sib.textContent.trim() && !sib.querySelector('img');
+  if(!sib || tailOnly){ toast(dir==='up'? 'Already at the top of the post' : 'Already at the end of the post'); return; }
+  if(dir==='up') ed.insertBefore(box,sib); else ed.insertBefore(sib,box);
+  ensureTail(); wgChanged();
+  const again=box.querySelector('[data-wg="'+dir+'"]'); if(again) again.focus({preventScroll:true});   // moving a node drops focus: put it back for keyboard users
+  box.scrollIntoView({block:'nearest'});
+}
+
+/* ---------- the rail: look line, night switch, widget switches ---------- */
+function syncNightSwitch(){
+  const sw=$('#nightSw'); if(!sw||!S) return;
+  const g=S.type==='guide';
+  sw.checked=nightOn(); sw.disabled=g;
+  $('#nightSwHint').textContent = g? 'Guides always end at a named night.' : 'The card at the end of the post. Pick the night in the card.';
+}
+function clearRail(){
+  const l=$('#lookOut'), w=$('#wgList'), n=$('#nightSw'); if(l) l.textContent=''; if(w) w.innerHTML=''; if(n){ n.checked=false; n.disabled=true; } railSig='';
+}
+function syncRail(){
+  if(!S||!ed) return;
+  const lk=lookOf(S.tags), keys=wgKeys(S.body);
+  $('#lookOut').innerHTML = lk.key==='default'
+    ? '<b>Standard</b> <span class="hint">No tag on this post picks a skin.</span>'
+    : '<b>'+esc(LOOKS[lk.key].label)+'</b> <span class="hint">from the tag '+esc(lk.tag)+(lk.others.length? '. Also matches '+esc(lk.others.map(o=>LOOKS[o.key].label).join(' and '))+', which comes later in the look order.' : '.')+'</span>';
+  syncNightSwitch();
+  const sig=lk.key+'|'+keys.join(',');
+  if(sig===railSig) return;
+  const ae=document.activeElement, wk=(ae && ae.closest && ae.closest('#wgList'))? ae.getAttribute('data-wk') : null;   // a switch rebuilt while it has focus keeps its focus
+  railSig=sig; renderWidgetList(lk,keys);
+  if(wk){ const n=$('#wgList [data-wk="'+wk+'"]'); if(n) n.focus({preventScroll:true}); }
+}
+function renderWidgetList(lk,keys){
+  const box=$('#wgList'); box.innerHTML='';
+  const head=t=>{ const h=document.createElement('p'); h.className='wgHead'; h.textContent=t; box.appendChild(h); };
+  const here=WIDGETS.filter(w=>w.look===lk.key), stray=keys.filter(k=>WBYKEY[k].look!==lk.key);
+  if(!here.length && !stray.length){
+    const p=document.createElement('p'); p.className='hint'; p.textContent='Widgets belong to a look. Add a look tag (Comics, Magic and so on) and this post\'s widgets show up here.'; box.appendChild(p); return;
+  }
+  const row=(w,on,isStray)=>{
+    const lab=document.createElement('label'); lab.className='sw';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.setAttribute('role','switch'); cb.setAttribute('data-wk',w.key); cb.checked=on;
+    const sp=document.createElement('span'), b=document.createElement('b'), h=document.createElement('span');
+    b.textContent=w.name; h.className='hint';
+    h.textContent=isStray? 'For the '+LOOKS[w.look].label+' look, not this one. Switch it off, or change the tags.' : w.note;
+    h.style.display='block';
+    sp.appendChild(b); sp.appendChild(h); lab.appendChild(cb); lab.appendChild(sp); box.appendChild(lab);
+    cb.onchange=()=>{ if(cb.checked) addWidget(w.key); else removeWidget(w.key); };
+    if(on && WFIELDS[w.key]){ const f=document.createElement('div'); f.className='wgf'; box.appendChild(f); buildWgFields(w.key,f); }
+  };
+  if(here.length){ head('Widgets for the '+LOOKS[lk.key].label+' look'); here.forEach(w=>row(w,keys.indexOf(w.key)>=0,false)); }
+  if(stray.length){ head('On this post, for another look'); stray.forEach(k=>row(WBYKEY[k],true,true)); }
+}
+function buildWgFields(k,host){
+  if(!wgNode(k)) return;
+  const F=WFIELDS[k];
+  const inp=(val,max,ph,label)=>{ const i=document.createElement('input'); i.type='text'; i.value=val; i.maxLength=max; i.placeholder=ph; i.setAttribute('aria-label',label); return i; };
+  const cur=()=>{ const n=wgNode(k); return n? nodeState(n) : null; };                       // always the stand-in that is in the post right now
+  const commit=st=>{ const n=wgNode(k); if(!n) return; n.setAttribute('data-bc-f',JSON.stringify(st)); paintWidget(n); onBodyInput(); };
+  host.innerHTML='';
+  const st=cur(); if(!st) return;
+  if(k==='cx-caps'){
+    st.caps.forEach((c,i)=>{
+      const r=document.createElement('div'); r.className='wgrow two';
+      const a=inp(c[0],40,'Label','Caption '+(i+1)+' label'), b=inp(c[1],220,'Line','Caption '+(i+1)+' line');
+      const go=()=>{ const s2=cur(); if(!s2) return; s2.caps[i]=[a.value,b.value]; commit(s2); };
+      a.oninput=go; b.oninput=go; r.appendChild(a); r.appendChild(b); host.appendChild(r);
+    });
+  } else if(k==='cx-order'){
+    const h=inp(st.h,60,'Heading','Heading'), sb=inp(st.sub,200,'Line under the heading','Line under the heading');
+    h.oninput=()=>{ const s2=cur(); if(!s2) return; s2.h=h.value; commit(s2); };
+    sb.oninput=()=>{ const s2=cur(); if(!s2) return; s2.sub=sb.value; commit(s2); };
+    host.appendChild(h); host.appendChild(sb);
+    st.steps.forEach((c,i)=>{
+      const r=document.createElement('div'); r.className='wgrow three';
+      const a=inp(c[0],40,'Step','Step '+(i+1)+' name'), b=inp(c[1],220,'Line','Step '+(i+1)+' line');
+      const rm=document.createElement('button'); rm.type='button'; rm.className='btn sm ghost'; rm.textContent='Remove'; rm.setAttribute('aria-label','Remove step '+(i+1)); rm.disabled=st.steps.length<=2;
+      const go=()=>{ const s2=cur(); if(!s2) return; s2.steps[i]=[a.value,b.value]; commit(s2); };
+      a.oninput=go; b.oninput=go;
+      rm.onclick=()=>{ const s2=cur(); if(!s2) return; s2.steps.splice(i,1); commit(s2); buildWgFields(k,host); const rows=host.querySelectorAll('.wgrow.three'); const row=rows[Math.min(i,rows.length-1)]; if(row) row.querySelector('input').focus(); };
+      r.appendChild(a); r.appendChild(rm); r.appendChild(b); host.appendChild(r);
+    });
+    const add=document.createElement('button'); add.type='button'; add.className='btn sm'; add.textContent='Add a step'; add.disabled=st.steps.length>=8;
+    add.onclick=()=>{ const s2=cur(); if(!s2) return; s2.steps.push(['','']); commit(s2); buildWgFields(k,host); const rows=host.querySelectorAll('.wgrow.three'); const last=rows[rows.length-1]; if(last) last.querySelector('input').focus(); };
+    host.appendChild(add);
+  }
+}
+function wireRail(){
+  $('#nightSw').onchange=e=>{
+    if(!S) return;
+    if(S.type==='guide'){ syncNightSwitch(); return; }
+    S.night.on=e.target.checked; applyType(); scheduleSave(); refresh();
+    if(S.night.on){ try{ $('#nightCard').scrollIntoView({block:'center',behavior:'smooth'}); }catch(x){} }
+  };
+  ed.addEventListener('mousedown',e=>{ if(e.target.closest && e.target.closest('[data-wg]')) e.preventDefault(); });
+  ed.addEventListener('click',e=>{
+    const b=e.target.closest && e.target.closest('[data-wg]'); if(!b||!ed.contains(b)) return;
+    e.preventDefault(); moveWidget(b.closest('.bc-wg'),b.getAttribute('data-wg'));
+  });
+}
+function syncTagChips(){
+  if(!S) return;
+  const have=new Set(S.tags.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean));
+  document.querySelectorAll('#tagChips [data-tag]').forEach(b=>b.setAttribute('aria-pressed',String(have.has(b.getAttribute('data-tag').toLowerCase()))));
+}
+function lookChecks(add){
+  const lk=lookOf(S.tags);
+  if(lk.key==='default') add('info','Look: the standard Bat City look. No tag on this post picks a skin.');
+  else add('info','Look: '+LOOKS[lk.key].label+', from the tag '+lk.tag+(lk.others.length? '. The tags also match '+lk.others.map(o=>LOOKS[o.key].label).join(' and ')+', but '+LOOKS[lk.key].label+' comes first in the look order.' : '.'));
+  if(S.column) add('info','Column posts use their own template, which should not carry the Skin section, so no look will show. Confirm that in the theme editor.');
+  wgKeys(S.body).forEach(k=>{
+    const w=WBYKEY[k];
+    if(w.look!==lk.key) add('warn','The "'+w.name+'" widget is for the '+LOOKS[w.look].label+' look, but this post wears '+(lk.key==='default'? 'the standard look' : LOOKS[lk.key].label)+'. It will not work. Switch it off or change the tags.');
+  });
+  const seen={}; String(S.body||'').replace(WMARK_RE,(m,k,f)=>{
+    const F=WFIELDS[k];
+    if(F && WBYKEY[k] && !seen[k]){ seen[k]=1; const st=wgState(k,f); if(JSON.stringify(st)===JSON.stringify(F.def)) add('info','The "'+WBYKEY[k].name+'" widget still has its sample text. Edit it in the rail.'); if(JSON.stringify(st).indexOf('""')>=0) add('warn','The "'+WBYKEY[k].name+'" widget has an empty label or line.'); }
+    return m;
+  });
+}
+
+
 /* ---------- body sync ---------- */
 function syncBody(){
   if(!S||!ed) return false;
@@ -949,6 +1225,7 @@ function syncBody(){
   S.body=h; return true;
 }
 function onBodyInput(){
+  ensureTail();
   if(!ed.firstChild || (ed.children.length===1 && ed.firstElementChild.tagName==='BR')) ed.innerHTML='<p><br></p>';
   clearTimeout(syncTimer);
   syncTimer=setTimeout(()=>{ if(syncBody()) scheduleSave(); scheduleRefresh(); schedulePaint(); },300);
@@ -1135,7 +1412,7 @@ function hits(re,text){ const m=text.match(re); return m? Array.from(new Set(m.m
 function quote(a,n){ return a.slice(0,n||2).map(x=>'"'+x+'"').join(', ')+(a.length>(n||2)?' and '+(a.length-(n||2))+' more':''); }
 
 function allText(){
-  const parts=[S.title,S.excerpt,S.byline,S.alt,S.seoTitle,S.seoDesc,textFromHtml(S.body)];
+  const parts=[S.title,S.excerpt,S.byline,S.alt,S.seoTitle,S.seoDesc,textFromHtml(S.body),widgetText(S.body)];
   if(nightOn()) parts.push(S.night.name,S.night.blurb);
   return parts.join(' \n ');
 }
@@ -1210,6 +1487,8 @@ function runChecks(){
     if(/jacob/i.test(S.byline) || /\bJacob\b/.test(textFromHtml(S.body))) add('warn','Jacob\'s name stays out of the columns (Nov 8). Use we, or sign it The Bat City Crew.');
   }
 
+  lookChecks(add);
+
   // search listing
   if(!S.seoTitle.trim() && S.title.trim().length>60) add('warn','Title is '+S.title.trim().length+' characters. Search results cut off near 60. Add a shorter page title.');
   if(S.seoTitle.trim().length>60) add('warn','Page title is '+S.seoTitle.trim().length+' characters (about 60 fits)');
@@ -1253,6 +1532,7 @@ function refresh(){
   $('#checks').innerHTML=pills(runChecks());
   $('#pubHint').textContent = S.publishOn? dateLabel(S.publishOn)+(daysUntil(S.publishOn)<0?' (past)':daysUntil(S.publishOn)===0?' (today)':daysUntil(S.publishOn)===1?' (tomorrow)':' (in '+daysUntil(S.publishOn)+' days)')+'. Shopify: schedule it for 9:00 AM.' : 'No date yet. Posts with a date sit at the top of your list, soonest first.';
   updateTools();
+  syncRail(); syncTagChips();
 }
 function scheduleRefresh(){ clearTimeout(checkTimer); checkTimer=setTimeout(refresh,180); }
 
@@ -1293,7 +1573,7 @@ function typeButtons(into,onPick){
 function showEmpty(){
   $('#empty').hidden=false; $('#sheetWrap').hidden=true; $('#bar').hidden=true; $('#ctx').hidden=true;
   $('#checks').innerHTML=''; $('#confirms').innerHTML=''; $('#count').textContent='';
-  $('#chipOut').textContent='The Batcave';
+  $('#chipOut').textContent='The Batcave'; clearRail();
   typeButtons($('#emptyTypes'),k=>newPost(k));
   renderTop();
 }
@@ -1322,11 +1602,14 @@ function buildConfirms(){
 }
 function buildTagChips(){
   const box=$('#tagChips'); box.innerHTML='';
-  TAG_SUGGEST.forEach(t=>{
-    const b=document.createElement('button'); b.type='button'; b.className='btn sm ghost'; b.textContent=t;
+  const chip=t=>{
+    const b=document.createElement('button'); b.type='button'; b.className='btn sm ghost'; b.textContent=t; b.setAttribute('data-tag',t); b.setAttribute('aria-pressed','false');
     b.onclick=()=>{ const have=S.tags.split(',').map(x=>x.trim()).filter(Boolean); if(have.some(x=>x.toLowerCase()===t.toLowerCase())) return; have.push(t); S.tags=have.join(', '); $('#fTags').value=S.tags; scheduleSave(); refresh(); };
     box.appendChild(b);
-  });
+  };
+  TAG_SUGGEST.forEach(chip);
+  const lab=document.createElement('span'); lab.className='hint'; lab.style.cssText='flex:1 0 100%;margin-top:4px'; lab.textContent='Look tags: these pick the post\'s skin'; box.appendChild(lab);
+  LOOK_CHIPS.forEach(chip);
 }
 function applyColumnTags(){
   // the column tag goes first, then First Read or Reread, then whatever other tags the post has
@@ -1351,12 +1634,13 @@ function outlineLabel(){ return COLUMNS[S.column]? COLUMNS[S.column].label+' out
 const normHtml = h => cleanHtml(h||'').replace(/\s+/g,' ').trim();
 function bodyIsStarter(){   // blank, or still exactly one of the starter outlines
   syncBody();
+  if(wgKeys(S.body).length) return false;   // a post with a widget is never a bare starter
   if(!textFromHtml(S.body).trim()) return true;
   const cur=normHtml(S.body);
   return Object.values(SCAFFOLD).concat(Object.values(COL_OUTLINE)).some(t=>normHtml(t)===cur);
 }
 function loadOutline(){   // puts the outline for the current column or kind into the body
-  S.body=cleanHtml(outlineFor()); dirty=true; loadIntoUI(); scheduleSave();
+  syncBody(); S.body=cleanHtml(outlineFor()+widgetTail(S.body)); dirty=true; loadIntoUI(); scheduleSave();   // widgets stay on the post
 }
 function outlineNudge(){  // after a column or kind change
   if(!S) return;
@@ -1381,8 +1665,7 @@ function applyType(){
   $('#bylineHint').textContent=T.byline;
   $('#bylineHint').hidden=!T.byline;
   const on=nightOn();
-  $('#nightCard').hidden=!on; $('#addNight').hidden=on;
-  $('#rmNight').hidden = S.type==='guide';
+  $('#nightCard').hidden=!on; syncNightSwitch();
   buildConfirms();
   document.querySelectorAll('.sheet textarea').forEach(autosize);   // a card that was hidden measured as zero tall
 }
@@ -1390,7 +1673,7 @@ function loadIntoUI(){
   outlineOffer=false;
   $('#empty').hidden=true; $('#sheetWrap').hidden=false; $('#bar').hidden=false;
   const clean=cleanHtml(S.body); S.body=clean;
-  ed.innerHTML=clean || '<p><br></p>';
+  ed.innerHTML=clean || '<p><br></p>'; hydrateWidgets();
   fillInputs(); applyType(); renderTop(); refresh(); paintPrompts();
   $('#sheetWrap').scrollTop=0; setCtx(null);
   document.querySelectorAll('.sheet textarea, #fSeoDesc').forEach(autosize);
@@ -1448,7 +1731,7 @@ function shopifyRows(){
   const rows=[], add=(where,label,value,o)=>rows.push(Object.assign({where,label,value:value||''},o||{}));
   syncBody();
   add('Title','Title',S.title.trim());
-  add('Content: press the <> button in the editor, then paste','Body (HTML)',S.body,{mono:true,always:true});
+  add('Content: press the <> button in the editor, then paste','Body (HTML)',exportBody(S.body),{mono:true,always:true});
   add('Excerpt','Excerpt',S.excerpt.trim());
   const meta={ byline:effByline() };
   if(nightOn()){
@@ -1504,7 +1787,7 @@ function closeModal(){ $('#modalRoot').innerHTML=''; }
 async function copyBody(){
   if(!S) return;
   syncBody();
-  const ok=await copyText(S.body,null);
+  const ok=await copyText(exportBody(S.body),null);
   openFields(ok);
 }
 function openChooser(date){
@@ -1567,8 +1850,6 @@ function wire(){
     const n=NIGHTS[+v]; S.night.day=n.day; S.night.name=n.name; S.night.time=n.time; S.night.link=n.link;
     fillInputs(); scheduleSave(); refresh();
   };
-  $('#addNight').onclick=()=>{ S.night.on=true; applyType(); scheduleSave(); refresh(); };
-  $('#rmNight').onclick=()=>{ S.night.on=false; applyType(); scheduleSave(); refresh(); };
   $('#useHandle').onclick=()=>{ S.handle=suggestHandle(); $('#fHandle').value=S.handle; scheduleSave(); refresh(); };
 
   // toolbar
@@ -1624,6 +1905,7 @@ function wire(){
   $('#btnDelYes').onclick=async()=>{ $('#delAsk').hidden=true; $('#btnDel').hidden=false; await deletePost(); };
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
   window.addEventListener('pagehide',()=>{ flush(); });
+  wireRail();
 }
 
 async function boot(){
@@ -1639,6 +1921,6 @@ async function boot(){
   if(db && index.length) await openPost(startId());
 }
 boot();
-window.__pc={ get S(){return S}, weekRows, dateLabel, daysUntil, sortedIndex, startId, get index(){return index}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge };
+window.__pc={ get S(){return S}, weekRows, dateLabel, daysUntil, sortedIndex, startId, get index(){return index}, runChecks, cleanHtml, textFromHtml, wordCount, shopifyRows, suggestHandle, gotoPrompt, promptCount, newPost, openPost, flush, TYPES, mergeDoc, COLUMNS, SCAFFOLD, COL_OUTLINE, bodyIsStarter, loadOutline, outlineNudge, LOOKS, LOOK_ORDER, WIDGETS, WFIELDS, lookOf, tagHandle, exportBody, widgetText, wgKeys, addWidget, removeWidget, moveWidget, syncRail, hydrateWidgets, syncBody };
 </script>
 </body></html>
